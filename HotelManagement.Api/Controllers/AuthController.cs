@@ -5,22 +5,47 @@
 public class AuthController : ControllerBase
 {
     private readonly IJwtService _jwtService;
+    private readonly IAuthService _authService;
 
-    public AuthController(IJwtService jwtService)
+    public AuthController( IJwtService jwtService, IAuthService authService)
     {
         _jwtService = jwtService;
+        _authService = authService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] UserRegistrationDto registrationDto)
+    {
+        try
+        {
+            var newUser = await _authService.RegisterUserAsync(registrationDto);
+
+            // Generate JWT token
+            var token = _jwtService.GenerateToken(newUser.Id.ToString(), newUser.Email, newUser.Role);
+
+            return Ok(new AuthResultDto { Token = token, Expiration = DateTime.UtcNow.AddMinutes(60) });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] UserLoginDto loginDto)
+    public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
     {
-        // Replace with real authentication logic (database check, etc.)
-        if (loginDto.Email == "admin@hotel.com" && loginDto.Password == "Admin123")
+        try
         {
-            var token = _jwtService.GenerateToken("1", loginDto.Email, "Admin");
-            return Ok(new { Token = token });
-        }
+            var userLogged = await _authService.LoginUserAsync(loginDto);
 
-        return Unauthorized("Invalid email or password.");
+            // Generate JWT token
+            var token = _jwtService.GenerateToken(userLogged.Id.ToString(), userLogged.Email, userLogged.Role);
+
+            return Ok(new AuthResultDto { Token = token, Expiration = DateTime.UtcNow.AddMinutes(60) });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 }
