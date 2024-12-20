@@ -12,6 +12,32 @@ public static class SwaggerConfiguration
                 Version = "v1",
                 Description = "API for managing hotels and reservations."
             });
+
+            // Add JWT Authentication to Swagger
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter 'Bearer' [space] and then your token. Example: Bearer abc123"
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>() // No roles/policies required for basic JWT validation
+                }
+            });
         });
 
         return services;
@@ -23,7 +49,7 @@ public static class SwaggerConfiguration
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "Hotel Management API v1");
-            options.RoutePrefix = string.Empty; // Hace que Swagger esté disponible en la raíz (http://localhost:<puerto>/)
+            options.RoutePrefix = string.Empty; // Swagger at root path
         });
 
         return app;
