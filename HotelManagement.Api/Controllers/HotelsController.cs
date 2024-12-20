@@ -33,12 +33,54 @@ public class HotelsController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(HotelDto hotelDto)
     {
         await _hotelService.AddHotelAsync(hotelDto);
         return CreatedAtAction(nameof(GetById), new { id = hotelDto.Id }, hotelDto);
+    }
+
+    [HttpPut("{hotelId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateHotel(Guid hotelId, [FromBody] UpdateHotelDto updateHotelDto)
+    {
+        try
+        {
+            await _hotelService.UpdateHotelAsync(hotelId, updateHotelDto);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message); 
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occurred."); 
+        }
+    }
+
+    [HttpPost("assign-rooms")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AssignRoomsToHotel([FromBody] AssignRoomsToHotelDto assignRoomsDto)
+    {
+        try
+        {
+            await _hotelService.AssignRoomsToHotelAsync(assignRoomsDto);
+            return Ok("Rooms successfully assigned to the hotel.");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 
     [HttpPost]

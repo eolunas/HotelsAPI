@@ -3,6 +3,8 @@
     Task<IEnumerable<HotelDto>> GetAllHotelsAsync();
     Task<HotelDto> GetHotelByIdAsync(Guid id);
     Task AddHotelAsync(HotelDto hotelDto);
+    Task UpdateHotelAsync(Guid hotelId, UpdateHotelDto updateHotelDto);
+    Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto);
 
     /// <summary>
     /// Searches hotels based on the specified criteria.

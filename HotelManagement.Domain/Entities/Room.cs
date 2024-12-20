@@ -6,6 +6,6 @@
     public decimal Taxes { get; set; }
     public string Location { get; set; }
     public bool IsAvailable { get; set; }
-    public Guid HotelId { get; set; }
+    public Guid? HotelId { get; set; }
     public Hotel Hotel { get; set; }
 }

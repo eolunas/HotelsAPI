@@ -45,4 +45,11 @@ public class RoomRepository : IRoomRepository
         _context.Rooms.Update(entity);
         await _context.SaveChangesAsync();
     }
+
+    public async Task UpdateAsyncRange(IEnumerable<Room> rooms)
+    {
+        _context.Rooms.UpdateRange(rooms);
+        await _context.SaveChangesAsync();
+    }
+
 }

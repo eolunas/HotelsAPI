@@ -53,6 +53,47 @@
         await _hotelRepository.AddAsync(hotel);
     }
 
+    public async Task UpdateHotelAsync(Guid hotelId, UpdateHotelDto updateHotelDto)
+    {
+        var hotel = await _hotelRepository.GetByIdAsync(hotelId);
+
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException("Hotel not found.");
+        }
+
+        hotel.Name = updateHotelDto.Name;
+        hotel.Location = updateHotelDto.Location;
+        hotel.BasePrice = updateHotelDto.BasePrice;
+        hotel.IsEnabled = updateHotelDto.IsEnabled;
+
+        await _hotelRepository.UpdateAsync(hotel);
+    }
+
+    public async Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto)
+    {
+        var hotel = await _hotelRepository.GetByIdAsync(assignRoomsDto.HotelId);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException("Hotel not found.");
+        }
+
+        var rooms = await _roomRepository.GetAllAsync();
+        var roomsToAssign = rooms.Where(r => assignRoomsDto.RoomIds.Contains(r.Id)).ToList();
+
+        foreach (var room in roomsToAssign)
+        {
+            if (room.HotelId.HasValue)
+            {
+                throw new InvalidOperationException($"Room {room.Id} is already assigned to another hotel.");
+            }
+
+            room.HotelId = hotel.Id;
+        }
+
+        await _roomRepository.UpdateAsyncRange(roomsToAssign);
+    }
+
     public async Task<IEnumerable<HotelSearchResultDto>> SearchHotelsAsync(HotelSearchCriteriaDto criteria)
     {
         // Filtrar hoteles en la ciudad solicitada
