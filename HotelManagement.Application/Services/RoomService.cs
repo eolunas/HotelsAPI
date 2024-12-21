@@ -51,6 +51,19 @@
         await _roomRepository.UpdateAsync(room);
     }
 
+    public async Task ToggleRoomStatusAsync(Guid roomId, bool isEnabled)
+    {
+        var room = await _roomRepository.GetByIdAsync(roomId);
+        if (room == null)
+        {
+            throw new KeyNotFoundException("Hotel not found.");
+        }
+
+        room.IsAvailable = isEnabled;
+
+        await _roomRepository.UpdateAsync(room);
+    }
+
     public async Task DeleteRoomAsync(Guid id)
     {
         await _roomRepository.DeleteAsync(id);

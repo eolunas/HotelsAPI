@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -30,6 +31,25 @@ public class RoomsController : ControllerBase
     {
         await _roomService.UpdateRoomAsync(roomDto);
         return NoContent();
+    }
+
+    [HttpPatch("{roomId}/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ToggleRoomStatus(Guid id, [FromBody] ToggleRoomStatusDto toggleStatusDto)
+    {
+        try
+        {
+            await _roomService.ToggleRoomStatusAsync(id, toggleStatusDto.IsEnabled);
+            return NoContent(); // 204 No Content
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message); // 404 Not Found
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occurred."); // 500 Internal Server Error
+        }
     }
 
     [HttpDelete("{id}")]
