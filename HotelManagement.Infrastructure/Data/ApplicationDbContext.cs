@@ -12,7 +12,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Guest> Guests { get; set; }
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 

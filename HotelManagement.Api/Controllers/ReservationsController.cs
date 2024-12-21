@@ -17,12 +17,19 @@ public class ReservationsController : ControllerBase
         var reservations = await _reservationService.GetReservationsByRoomIdAsync(roomId);
         return Ok(reservations);
     }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(ReservationDto reservationDto)
+    
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateReservation(CreateReservationDto reservationDto)
     {
-        await _reservationService.AddReservationAsync(reservationDto);
-        return CreatedAtAction(nameof(GetByRoomId), new { roomId = reservationDto.RoomId }, reservationDto);
+        try
+        {
+            await _reservationService.CreateReservationAsync(reservationDto);
+            return Ok(new { message = "Reservation created successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred: {ex.Message}");
+        }
     }
 
     [HttpDelete("{id}")]

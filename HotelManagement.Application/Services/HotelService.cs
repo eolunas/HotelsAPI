@@ -26,6 +26,7 @@
             Location = h.Location,
             BasePrice = h.BasePrice,
             IsEnabled = h.IsEnabled,
+            CreatedByUserId = h.CreatedByUserId,
             Rooms = h.Rooms?.Select(r => new RoomDto
             {
                 Id = r.Id,
@@ -111,13 +112,18 @@
     public async Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto)
     {
         var hotel = await _hotelRepository.GetByIdAsync(assignRoomsDto.HotelId);
-        if (hotel == null)
+        if (hotel.Id == 0)
         {
             throw new KeyNotFoundException("Hotel not found.");
         }
 
         var rooms = await _roomRepository.GetAllAsync();
         var roomsToAssign = rooms.Where(r => assignRoomsDto.RoomIds.Contains(r.Id)).ToList();
+
+        if (roomsToAssign.Count() == 0)
+        {
+            throw new InvalidOperationException($"There are not rooms to assign.");
+        }
 
         foreach (var room in roomsToAssign)
         {
