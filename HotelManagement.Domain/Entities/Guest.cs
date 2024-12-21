@@ -1,13 +1,32 @@
-﻿public class Guest
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+[Table("Guests")]
+public class Guest
 {
-    public Guid Id { get; set; }
-    public string FullName { get; set; } 
-    public DateTime BirthDate { get; set; } 
-    public string Gender { get; set; } 
-    public string DocumentType { get; set; } 
-    public string DocumentNumber { get; set; } 
-    public string Email { get; set; } 
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id { get; set; }
+
+    [Required, MaxLength(100)]
+    public string FullName { get; set; }
+
+    [Required]
+    public DateTime BirthDate { get; set; }
+
+    [Required, MaxLength(10)]
+    public string Gender { get; set; }
+
+    [Required, MaxLength(20)]
+    public string DocumentType { get; set; }
+
+    [Required, MaxLength(50)]
+    public string DocumentNumber { get; set; }
+
+    [Required, EmailAddress, MaxLength(255)]
+    public string Email { get; set; }
+
+    [Required, MaxLength(15)]
     public string Phone { get; set; }
-    public Guid ReservationId { get; set; } 
-    public Reservation Reservation { get; set; }
+
 }

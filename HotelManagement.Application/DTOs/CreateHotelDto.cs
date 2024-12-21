@@ -1,6 +1,5 @@
-﻿public class HotelDto
+﻿public class CreateHotelDto
 {
-    public long Id { get; set; }
     public string Name { get; set; }
     public string Location { get; set; }
     public decimal BasePrice { get; set; }

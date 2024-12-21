@@ -1,6 +1,6 @@
 ﻿public interface IReservationService
 {
-    Task<IEnumerable<ReservationDto>> GetReservationsByRoomIdAsync(Guid roomId);
+    Task<IEnumerable<ReservationDto>> GetReservationsByRoomIdAsync(long roomId);
     Task AddReservationAsync(ReservationDto reservationDto);
-    Task DeleteReservationAsync(Guid id);
+    Task DeleteReservationAsync(long id);
 }

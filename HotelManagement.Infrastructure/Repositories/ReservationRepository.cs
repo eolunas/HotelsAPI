@@ -9,7 +9,7 @@ public class ReservationRepository : IReservationRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Reservation>> GetReservationsByRoomIdAsync(Guid roomId)
+    public async Task<IEnumerable<Reservation>> GetReservationsByRoomIdAsync(long roomId)
     {
         return await _context.Reservations
             .Where(r => r.RoomId == roomId)
@@ -29,7 +29,7 @@ public class ReservationRepository : IReservationRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(long id)
     {
         var reservation = await _context.Reservations.FindAsync(id);
         if (reservation == null) return;
@@ -37,7 +37,7 @@ public class ReservationRepository : IReservationRepository
         await _context.SaveChangesAsync();
     }
 
-    public Task<Reservation> GetByIdAsync(Guid id)
+    public Task<Reservation> GetByIdAsync(long id)
     {
         throw new NotImplementedException();
     }

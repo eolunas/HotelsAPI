@@ -1,5 +1,5 @@
 ﻿public class AssignRoomsToHotelDto
 {
-    public Guid HotelId { get; set; }       
-    public List<Guid> RoomIds { get; set; } 
+    public long HotelId { get; set; }       
+    public List<long> RoomIds { get; set; } 
 }

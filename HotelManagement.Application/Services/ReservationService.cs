@@ -9,7 +9,7 @@
         _roomRepository = roomRepository;
     }
 
-    public async Task<IEnumerable<ReservationDto>> GetReservationsByRoomIdAsync(Guid roomId)
+    public async Task<IEnumerable<ReservationDto>> GetReservationsByRoomIdAsync(long roomId)
     {
         var reservations = await _reservationRepository.GetReservationsByRoomIdAsync(roomId);
         return reservations.Select(r => new ReservationDto
@@ -19,8 +19,6 @@
             CheckOutDate = r.CheckOutDate,
             NumberOfGuests = r.NumberOfGuests,
             RoomId = r.RoomId,
-            CustomerName = r.CustomerName,
-            CustomerEmail = r.CustomerEmail,
             IsConfirmed = r.IsConfirmed
         });
     }
@@ -33,20 +31,17 @@
 
         var reservation = new Reservation
         {
-            Id = Guid.NewGuid(),
             CheckInDate = reservationDto.CheckInDate,
             CheckOutDate = reservationDto.CheckOutDate,
             NumberOfGuests = reservationDto.NumberOfGuests,
             RoomId = reservationDto.RoomId,
-            CustomerName = reservationDto.CustomerName,
-            CustomerEmail = reservationDto.CustomerEmail,
             IsConfirmed = reservationDto.IsConfirmed
         };
 
         await _reservationRepository.AddAsync(reservation);
     }
 
-    public async Task DeleteReservationAsync(Guid id)
+    public async Task DeleteReservationAsync(long id)
     {
         await _reservationRepository.DeleteAsync(id);
     }

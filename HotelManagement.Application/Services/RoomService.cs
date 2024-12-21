@@ -7,7 +7,7 @@
         _roomRepository = roomRepository;
     }
 
-    public async Task<IEnumerable<RoomDto>> GetRoomsByHotelIdAsync(Guid hotelId)
+    public async Task<IEnumerable<RoomDto>> GetRoomsByHotelIdAsync(long hotelId)
     {
         var rooms = await _roomRepository.GetRoomsByHotelIdAsync(hotelId);
         return rooms.Select(r => new RoomDto
@@ -26,7 +26,6 @@
     {
         var room = new Room
         {
-            Id = Guid.NewGuid(),
             RoomType = roomDto.RoomType,
             BasePrice = roomDto.BasePrice,
             Taxes = roomDto.Taxes,
@@ -51,20 +50,20 @@
         await _roomRepository.UpdateAsync(room);
     }
 
-    public async Task ToggleRoomStatusAsync(Guid roomId, bool isEnabled)
+    public async Task ToggleRoomStatusAsync(long roomId, bool isAvailable)
     {
         var room = await _roomRepository.GetByIdAsync(roomId);
         if (room == null)
         {
-            throw new KeyNotFoundException("Hotel not found.");
+            throw new KeyNotFoundException("Room not found.");
         }
 
-        room.IsAvailable = isEnabled;
+        room.IsAvailable = isAvailable;
 
         await _roomRepository.UpdateAsync(room);
     }
 
-    public async Task DeleteRoomAsync(Guid id)
+    public async Task DeleteRoomAsync(long id)
     {
         await _roomRepository.DeleteAsync(id);
     }

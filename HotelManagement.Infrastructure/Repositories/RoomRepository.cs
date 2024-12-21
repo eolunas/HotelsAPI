@@ -9,7 +9,7 @@ public class RoomRepository : IRoomRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Room>> GetRoomsByHotelIdAsync(Guid hotelId)
+    public async Task<IEnumerable<Room>> GetRoomsByHotelIdAsync(long hotelId)
     {
         return await _context.Rooms
             .Where(r => r.HotelId == hotelId)
@@ -22,7 +22,7 @@ public class RoomRepository : IRoomRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(long id)
     {
         var room = await _context.Rooms.FindAsync(id);
         if (room == null) return;
@@ -35,7 +35,7 @@ public class RoomRepository : IRoomRepository
         return await _context.Rooms.ToListAsync();
     }
 
-    public async Task<Room> GetByIdAsync(Guid id)
+    public async Task<Room> GetByIdAsync(long id)
     {
         return await _context.Rooms.FindAsync(id);
     }

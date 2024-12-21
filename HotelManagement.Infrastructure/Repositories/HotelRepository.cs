@@ -15,7 +15,7 @@ public class HotelRepository : IRepository<Hotel>
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(long id)
     {
         var hotel = await _context.Hotels.FindAsync(id);
         if (hotel == null) return;
@@ -28,7 +28,7 @@ public class HotelRepository : IRepository<Hotel>
         return await _context.Hotels.ToListAsync();
     }
 
-    public async Task<Hotel> GetByIdAsync(Guid id)
+    public async Task<Hotel> GetByIdAsync(long id)
     {
         return await _context.Hotels.FindAsync(id);
     }

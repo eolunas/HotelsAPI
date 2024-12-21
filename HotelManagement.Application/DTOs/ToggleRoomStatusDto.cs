@@ -1,5 +1,5 @@
 ﻿public class ToggleRoomStatusDto
 {
-    public bool IsEnabled { get; set; }
+    public bool isAvailable { get; set; }
 }
 

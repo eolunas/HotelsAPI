@@ -12,7 +12,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("room/{roomId}")]
-    public async Task<IActionResult> GetByRoomId(Guid roomId)
+    public async Task<IActionResult> GetByRoomId(long roomId)
     {
         var reservations = await _reservationService.GetReservationsByRoomIdAsync(roomId);
         return Ok(reservations);
@@ -26,7 +26,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(long id)
     {
         await _reservationService.DeleteReservationAsync(id);
         return NoContent();

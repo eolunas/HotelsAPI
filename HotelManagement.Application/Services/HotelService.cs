@@ -3,14 +3,17 @@
     private readonly IRepository<Hotel> _hotelRepository;
     private readonly IRoomRepository _roomRepository;
     private readonly IReservationRepository _reservationRepository;
+    private readonly IUserRepository _userRepository;
 
     public HotelService(IRepository<Hotel> hotelRepository,
                         IRoomRepository roomRepository,
-                        IReservationRepository reservationRepository)
+                        IReservationRepository reservationRepository,
+                        IUserRepository userRepository)
     {
         _hotelRepository = hotelRepository;
         _roomRepository = roomRepository;
         _reservationRepository = reservationRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<IEnumerable<HotelDto>> GetAllHotelsAsync()
@@ -26,7 +29,7 @@
         });
     }
 
-    public async Task<HotelDto> GetHotelByIdAsync(Guid id)
+    public async Task<HotelDto> GetHotelByIdAsync(long id)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
         if (hotel == null) throw new KeyNotFoundException("Hotel not found");
@@ -40,20 +43,27 @@
         };
     }
 
-    public async Task AddHotelAsync(HotelDto hotelDto)
+    public async Task AddHotelAsync(CreateHotelDto createHotelDto, int userId)
     {
-        var hotel = new Hotel
+        var userExists = await _userRepository.ExistsAsync(userId);
+        if (!userExists)
         {
-            Id = Guid.NewGuid(),
-            Name = hotelDto.Name,
-            Location = hotelDto.Location,
-            BasePrice = hotelDto.BasePrice,
-            IsEnabled = hotelDto.IsEnabled
+            throw new KeyNotFoundException("The user does not exist.");
+        }
+
+        var newHotel = new Hotel
+        {
+            Name = createHotelDto.Name,
+            Location = createHotelDto.Location,
+            BasePrice = createHotelDto.BasePrice,
+            IsEnabled = createHotelDto.IsEnabled,
+            CreatedByUserId = userId
         };
-        await _hotelRepository.AddAsync(hotel);
+
+        await _hotelRepository.AddAsync(newHotel);
     }
 
-    public async Task UpdateHotelAsync(Guid hotelId, UpdateHotelDto updateHotelDto)
+    public async Task UpdateHotelAsync(long hotelId, UpdateHotelDto updateHotelDto)
     {
         var hotel = await _hotelRepository.GetByIdAsync(hotelId);
 
@@ -70,7 +80,7 @@
         await _hotelRepository.UpdateAsync(hotel);
     }
 
-    public async Task ToggleHotelStatusAsync(Guid hotelId, bool isEnabled)
+    public async Task ToggleHotelStatusAsync(long hotelId, bool isEnabled)
     {
         var hotel = await _hotelRepository.GetByIdAsync(hotelId);
         if (hotel == null)

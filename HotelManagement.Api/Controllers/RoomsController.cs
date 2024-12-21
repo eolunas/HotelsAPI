@@ -13,7 +13,7 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet("{hotelId}")]
-    public async Task<IActionResult> GetRoomsByHotelId(Guid hotelId)
+    public async Task<IActionResult> GetRoomsByHotelId(long hotelId)
     {
         var rooms = await _roomService.GetRoomsByHotelIdAsync(hotelId);
         return Ok(rooms);
@@ -35,11 +35,11 @@ public class RoomsController : ControllerBase
 
     [HttpPatch("{roomId}/status")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ToggleRoomStatus(Guid id, [FromBody] ToggleRoomStatusDto toggleStatusDto)
+    public async Task<IActionResult> ToggleRoomStatus(long roomId, [FromBody] ToggleRoomStatusDto toggleStatusDto)
     {
         try
         {
-            await _roomService.ToggleRoomStatusAsync(id, toggleStatusDto.IsEnabled);
+            await _roomService.ToggleRoomStatusAsync(roomId, toggleStatusDto.isAvailable);
             return NoContent(); // 204 No Content
         }
         catch (KeyNotFoundException ex)
@@ -53,7 +53,7 @@ public class RoomsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(long id)
     {
         await _roomService.DeleteRoomAsync(id);
         return NoContent();

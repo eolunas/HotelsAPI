@@ -1,7 +1,23 @@
-﻿public class User
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+[Table("Users")]
+public class User
 {
-    public Guid Id { get; set; } 
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id { get; set; }
+
+    [Required, EmailAddress, MaxLength(255)]
     public string Email { get; set; }
+
+    [Required, MaxLength(255)]
     public string PasswordHash { get; set; }
-    public string Role { get; set; } 
+
+    [Required, MaxLength(50)]
+    public string Role { get; set; }
+
+    public ICollection<Hotel> CreatedHotels { get; set; }
+    public ICollection<Room> CreatedRooms { get; set; }
 }
+

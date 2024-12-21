@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,7 +21,7 @@ public class HotelsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(long id)
     {
         try
         {
@@ -35,15 +36,17 @@ public class HotelsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create(HotelDto hotelDto)
+    public async Task<IActionResult> Create(CreateHotelDto createHotelDto)
     {
-        await _hotelService.AddHotelAsync(hotelDto);
-        return CreatedAtAction(nameof(GetById), new { id = hotelDto.Id }, hotelDto);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+        await _hotelService.AddHotelAsync(createHotelDto, userId);
+        return Ok(new { message = "Hotel created successfully." });
     }
 
     [HttpPut("{hotelId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateHotel(Guid hotelId, [FromBody] UpdateHotelDto updateHotelDto)
+    public async Task<IActionResult> UpdateHotel(long hotelId, [FromBody] UpdateHotelDto updateHotelDto)
     {
         try
         {
@@ -62,7 +65,7 @@ public class HotelsController : ControllerBase
 
     [HttpPatch("{hotelId}/status")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ToggleHotelStatus(Guid hotelId, [FromBody] ToggleHotelStatusDto toggleStatusDto)
+    public async Task<IActionResult> ToggleHotelStatus(long hotelId, [FromBody] ToggleHotelStatusDto toggleStatusDto)
     {
         try
         {

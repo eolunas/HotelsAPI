@@ -22,7 +22,6 @@
 
         var newUser = new User
         {
-            Id = Guid.NewGuid(),
             Email = registrationDto.Email,
             PasswordHash = hashedPassword,
             Role = registrationDto.Role
