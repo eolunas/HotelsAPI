@@ -25,12 +25,16 @@ public class HotelRepository : IRepository<Hotel>
 
     public async Task<IEnumerable<Hotel>> GetAllAsync()
     {
-        return await _context.Hotels.ToListAsync();
+        return await _context.Hotels
+            .Include(h => h.Rooms)
+            .ToListAsync();
     }
 
     public async Task<Hotel> GetByIdAsync(long id)
     {
-        return await _context.Hotels.FindAsync(id);
+        return await _context.Hotels
+            .Include(h => h.Rooms)
+            .FirstOrDefaultAsync(h => h.Id == id) ?? new Hotel();
     }
 
     public async Task UpdateAsync(Hotel entity)

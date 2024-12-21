@@ -1,10 +1,28 @@
 ﻿public class RoomService : IRoomService
 {
     private readonly IRoomRepository _roomRepository;
+    private readonly IUserRepository _userRepository;
 
-    public RoomService(IRoomRepository roomRepository)
+
+    public RoomService(IRoomRepository roomRepository, IUserRepository userRepository)
     {
         _roomRepository = roomRepository;
+        _userRepository = userRepository;
+    }
+
+    public async Task<IEnumerable<RoomDto>> GetAllRoomsAsync()
+    {
+        var rooms = await _roomRepository.GetAllAsync();
+        return rooms.Select(r => new RoomDto
+        {
+            Id = r.Id,
+            RoomType = r.RoomType,
+            BasePrice = r.BasePrice,
+            Taxes = r.Taxes,
+            Location = r.Location,
+            IsAvailable = r.IsAvailable,
+            HotelId = r.HotelId
+        });
     }
 
     public async Task<IEnumerable<RoomDto>> GetRoomsByHotelIdAsync(long hotelId)
@@ -22,21 +40,27 @@
         });
     }
 
-    public async Task AddRoomAsync(RoomDto roomDto)
+    public async Task AddRoomAsync(CreateRoomDto createRoomDto, int userId)
     {
+        var userExists = await _userRepository.ExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new KeyNotFoundException("The user does not exist.");
+        }
+
         var room = new Room
         {
-            RoomType = roomDto.RoomType,
-            BasePrice = roomDto.BasePrice,
-            Taxes = roomDto.Taxes,
-            Location = roomDto.Location,
-            IsAvailable = roomDto.IsAvailable,
-            HotelId = roomDto.HotelId
+            RoomType = createRoomDto.RoomType,
+            BasePrice = createRoomDto.BasePrice,
+            Taxes = createRoomDto.Taxes,
+            Location = createRoomDto.Location,
+            IsAvailable = createRoomDto.IsAvailable,
+            CreatedByUserId = userId
         };
         await _roomRepository.AddAsync(room);
     }
 
-    public async Task UpdateRoomAsync(RoomDto roomDto)
+    public async Task UpdateRoomAsync(UpdateRoomDto roomDto)
     {
         var room = await _roomRepository.GetByIdAsync(roomDto.Id);
         if (room == null) throw new KeyNotFoundException("Room not found");

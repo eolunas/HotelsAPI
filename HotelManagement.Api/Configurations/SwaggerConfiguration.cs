@@ -6,11 +6,13 @@ public static class SwaggerConfiguration
     {
         services.AddSwaggerGen(options =>
         {
+            options.EnableAnnotations();
+
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Hotel Management API",
                 Version = "v1",
-                Description = "API for managing hotels and reservations."
+                Description = "A comprehensive API for managing hotel operations and reservations. This API supports CRUD operations for hotels, rooms, and reservations, enabling functionality such as room availability tracking, user role-based access control, and streamlined reservation processes. Ideal for modern hotel management systems, it ensures secure, efficient, and scalable operations for administrators, guests, and other stakeholders."
             });
 
             // Add JWT Authentication to Swagger

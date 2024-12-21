@@ -3,7 +3,8 @@
     Task<IEnumerable<HotelDto>> GetAllHotelsAsync();
     Task<HotelDto> GetHotelByIdAsync(long id);
     Task AddHotelAsync(CreateHotelDto hotelDto, int userId);
-    Task UpdateHotelAsync(long hotelId, UpdateHotelDto updateHotelDto);
+    Task UpdateHotelAsync(UpdateHotelDto updateHotelDto);
+    Task DeleteHotelAsync(long id);
     Task ToggleHotelStatusAsync(long hotelId, bool isEnabled);
     Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto);
 

@@ -25,7 +25,17 @@
             Name = h.Name,
             Location = h.Location,
             BasePrice = h.BasePrice,
-            IsEnabled = h.IsEnabled
+            IsEnabled = h.IsEnabled,
+            Rooms = h.Rooms?.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                RoomType = r.RoomType,
+                Taxes = r.Taxes,
+                BasePrice = r.BasePrice,
+                Location = r.Location,
+                IsAvailable = r.IsAvailable,
+                HotelId = r.HotelId
+            }).ToList() ?? []
         });
     }
 
@@ -63,9 +73,9 @@
         await _hotelRepository.AddAsync(newHotel);
     }
 
-    public async Task UpdateHotelAsync(long hotelId, UpdateHotelDto updateHotelDto)
+    public async Task UpdateHotelAsync(UpdateHotelDto updateHotelDto)
     {
-        var hotel = await _hotelRepository.GetByIdAsync(hotelId);
+        var hotel = await _hotelRepository.GetByIdAsync(updateHotelDto.Id);
 
         if (hotel == null)
         {
@@ -78,6 +88,11 @@
         hotel.IsEnabled = updateHotelDto.IsEnabled;
 
         await _hotelRepository.UpdateAsync(hotel);
+    }
+
+    public async Task DeleteHotelAsync(long id)
+    {
+        await _hotelRepository.DeleteAsync(id);
     }
 
     public async Task ToggleHotelStatusAsync(long hotelId, bool isEnabled)

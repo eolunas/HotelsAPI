@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
 
 [ApiController]
@@ -34,7 +35,7 @@ public class HotelsController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(CreateHotelDto createHotelDto)
     {
@@ -44,13 +45,13 @@ public class HotelsController : ControllerBase
         return Ok(new { message = "Hotel created successfully." });
     }
 
-    [HttpPut("{hotelId}")]
+    [HttpPut("update")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateHotel(long hotelId, [FromBody] UpdateHotelDto updateHotelDto)
+    public async Task<IActionResult> UpdateHotel(UpdateHotelDto updateHotelDto)
     {
         try
         {
-            await _hotelService.UpdateHotelAsync(hotelId, updateHotelDto);
+            await _hotelService.UpdateHotelAsync(updateHotelDto);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
@@ -63,23 +64,36 @@ public class HotelsController : ControllerBase
         }
     }
 
-    [HttpPatch("{hotelId}/status")]
+    [HttpPatch("{id}/status")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ToggleHotelStatus(long hotelId, [FromBody] ToggleHotelStatusDto toggleStatusDto)
+    [SwaggerOperation(Summary = "Update the status of a hotel", Description = "Enables or disables a hotel for reservations")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ToggleHotelStatus(long id, [FromBody] ToggleHotelStatusDto toggleStatusDto)
     {
         try
         {
-            await _hotelService.ToggleHotelStatusAsync(hotelId, toggleStatusDto.IsEnabled);
+            await _hotelService.ToggleHotelStatusAsync(id, toggleStatusDto.IsEnabled);
             return NoContent(); // 204 No Content
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
-            return NotFound(ex.Message); // 404 Not Found
+            return NotFound($"Hotel with ID {id} not found."); // 404 Not Found
         }
         catch (Exception)
         {
             return StatusCode(500, "An unexpected error occurred."); // 500 Internal Server Error
         }
+    }
+
+
+    [HttpDelete("delete/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        await _hotelService.DeleteHotelAsync(id);
+        return NoContent();
     }
 
 

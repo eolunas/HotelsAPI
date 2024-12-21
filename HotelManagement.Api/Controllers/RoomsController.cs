@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -12,6 +13,13 @@ public class RoomsController : ControllerBase
         _roomService = roomService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var rooms = await _roomService.GetAllRoomsAsync();
+        return Ok(rooms);
+    }
+
     [HttpGet("{hotelId}")]
     public async Task<IActionResult> GetRoomsByHotelId(long hotelId)
     {
@@ -19,18 +27,33 @@ public class RoomsController : ControllerBase
         return Ok(rooms);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(RoomDto roomDto)
+    [HttpPost("create")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create(CreateRoomDto createRoomDto)
     {
-        await _roomService.AddRoomAsync(roomDto);
-        return CreatedAtAction(nameof(GetRoomsByHotelId), new { hotelId = roomDto.HotelId }, roomDto);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+        await _roomService.AddRoomAsync(createRoomDto, userId);
+        return Ok(new { message = "Room created successfully." });
     }
 
-    [HttpPut]
-    public async Task<IActionResult> Update(RoomDto roomDto)
+    [HttpPut("update")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(UpdateRoomDto updateRoomDto)
     {
-        await _roomService.UpdateRoomAsync(roomDto);
-        return NoContent();
+        try
+        {
+            await _roomService.UpdateRoomAsync(updateRoomDto);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 
     [HttpPatch("{roomId}/status")]
@@ -42,9 +65,9 @@ public class RoomsController : ControllerBase
             await _roomService.ToggleRoomStatusAsync(roomId, toggleStatusDto.isAvailable);
             return NoContent(); // 204 No Content
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
-            return NotFound(ex.Message); // 404 Not Found
+            return NotFound($"Room with ID {roomId} not found."); // 404 Not Found
         }
         catch (Exception)
         {
@@ -52,7 +75,8 @@ public class RoomsController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("delete/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(long id)
     {
         await _roomService.DeleteRoomAsync(id);
