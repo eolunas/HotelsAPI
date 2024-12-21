@@ -60,6 +60,26 @@ public class HotelsController : ControllerBase
         }
     }
 
+    [HttpPatch("{hotelId}/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ToggleHotelStatus(Guid hotelId, [FromBody] ToggleHotelStatusDto toggleStatusDto)
+    {
+        try
+        {
+            await _hotelService.ToggleHotelStatusAsync(hotelId, toggleStatusDto.IsEnabled);
+            return NoContent(); // 204 No Content
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message); // 404 Not Found
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "An unexpected error occurred."); // 500 Internal Server Error
+        }
+    }
+
+
     [HttpPost("assign-rooms")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AssignRoomsToHotel([FromBody] AssignRoomsToHotelDto assignRoomsDto)

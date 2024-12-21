@@ -70,6 +70,19 @@
         await _hotelRepository.UpdateAsync(hotel);
     }
 
+    public async Task ToggleHotelStatusAsync(Guid hotelId, bool isEnabled)
+    {
+        var hotel = await _hotelRepository.GetByIdAsync(hotelId);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException("Hotel not found.");
+        }
+
+        hotel.IsEnabled = isEnabled;
+
+        await _hotelRepository.UpdateAsync(hotel);
+    }
+
     public async Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto)
     {
         var hotel = await _hotelRepository.GetByIdAsync(assignRoomsDto.HotelId);

@@ -4,6 +4,7 @@
     Task<HotelDto> GetHotelByIdAsync(Guid id);
     Task AddHotelAsync(HotelDto hotelDto);
     Task UpdateHotelAsync(Guid hotelId, UpdateHotelDto updateHotelDto);
+    Task ToggleHotelStatusAsync(Guid hotelId, bool isEnabled);
     Task AssignRoomsToHotelAsync(AssignRoomsToHotelDto assignRoomsDto);
 
     /// <summary>
