@@ -1,8 +1,8 @@
 ﻿public class ReservationDetailDto
 {
     public long Id { get; set; }
-    public DateTime CheckInDate { get; set; }
-    public DateTime CheckOutDate { get; set; }
+    public DateOnly CheckInDate { get; set; }
+    public DateOnly CheckOutDate { get; set; }
     public int NumberOfGuests { get; set; }
     public decimal TotalCost { get; set; }
 

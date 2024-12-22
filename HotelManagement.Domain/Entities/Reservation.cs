@@ -9,10 +9,10 @@ public class Reservation
     public long Id { get; set; }
 
     [Required]
-    public DateTime CheckInDate { get; set; }
+    public DateOnly CheckInDate { get; set; }
 
     [Required]
-    public DateTime CheckOutDate { get; set; }
+    public DateOnly CheckOutDate { get; set; }
     
     [Required]
     public int NumberOfGuests { get; set; }

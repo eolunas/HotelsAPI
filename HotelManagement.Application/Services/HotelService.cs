@@ -43,14 +43,24 @@
     public async Task<HotelDto> GetHotelByIdAsync(long id)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
-        if (hotel == null) throw new KeyNotFoundException("Hotel not found");
+        if (hotel.Id == 0) throw new KeyNotFoundException("Hotel not found");
         return new HotelDto
         {
             Id = hotel.Id,
             Name = hotel.Name,
             Location = hotel.Location,
             BasePrice = hotel.BasePrice,
-            IsEnabled = hotel.IsEnabled
+            IsEnabled = hotel.IsEnabled,
+            Rooms = hotel.Rooms?.Select(r => new RoomDto
+            {
+                Id = r.Id,
+                RoomType = r.RoomType,
+                Taxes = r.Taxes,
+                BasePrice = r.BasePrice,
+                Location = r.Location,
+                IsAvailable = r.IsAvailable,
+                HotelId = r.HotelId
+            }).ToList() ?? []
         };
     }
 

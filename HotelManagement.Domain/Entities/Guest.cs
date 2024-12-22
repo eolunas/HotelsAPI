@@ -12,7 +12,7 @@ public class Guest
     public string FullName { get; set; }
 
     [Required]
-    public DateTime BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 
     [Required, MaxLength(10)]
     public string Gender { get; set; }

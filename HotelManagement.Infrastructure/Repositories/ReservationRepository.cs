@@ -16,7 +16,7 @@ public class ReservationRepository : IReservationRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Reservation>> GetReservationsByDateRangeAsync(DateTime startDate, DateTime endDate)
+    public async Task<IEnumerable<Reservation>> GetReservationsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
     {
         return await _context.Reservations
             .Where(r => r.CheckInDate >= startDate && r.CheckOutDate <= endDate)

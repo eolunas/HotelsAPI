@@ -66,7 +66,10 @@ public class HotelsController : ControllerBase
 
     [HttpPatch("{id}/status")]
     [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Update the status of a hotel", Description = "Enables or disables a hotel for reservations")]
+    [SwaggerOperation(
+        Summary = "Update the status of a hotel", 
+        Description = "Enables or disables a hotel for reservations"
+    )]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -96,9 +99,16 @@ public class HotelsController : ControllerBase
         return NoContent();
     }
 
-
     [HttpPost("assign-rooms")]
     [Authorize(Roles = "Admin")]
+    [SwaggerOperation(
+        Summary = "Assign rooms to hotel", 
+        Description = "Assign n rooms to one hotel by their id properties"
+    )]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignRoomsToHotel([FromBody] AssignRoomsToHotelDto assignRoomsDto)
     {
         try
@@ -120,8 +130,15 @@ public class HotelsController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("search")]
+    [HttpPost("search")]
+    [SwaggerOperation(
+        Summary = "Search hotels by criteria",
+        Description = "Search for hotels that match the given criteria such as location, amenities, or availability."
+    )]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<HotelDto>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SearchHotels([FromBody] HotelSearchCriteriaDto criteria)
     {
         if (criteria == null) return BadRequest("Invalid search criteria.");
