@@ -7,7 +7,7 @@
     private readonly IEmailService _emailService;
 
     public ReservationService(
-        IReservationRepository reservationRepository, 
+        IReservationRepository reservationRepository,
         IRoomRepository roomRepository,
         IGuestRepository guestRepository,
         IEmergencyContactRepository emergencyContactRepository,
@@ -19,6 +19,60 @@
         _guestRepository = guestRepository;
         _emailService = emailService;
         _emergencyContactRepository = emergencyContactRepository;
+    }
+
+    public async Task<IEnumerable<ReservationDto>> GetAllReservationsAsync()
+    {
+        var reservations = await _reservationRepository.GetAllAsync();
+        return reservations.Select(r => new ReservationDto
+        {
+            Id = r.Id,
+            CheckInDate = r.CheckInDate,
+            CheckOutDate = r.CheckOutDate,
+            NumberOfGuests = r.NumberOfGuests,
+            RoomId = r.RoomId,
+            IsConfirmed = r.IsConfirmed
+        });
+    }
+
+    public async Task<ReservationDetailDto> GetReservationDetailAsync(long id)
+    {
+        var reservation = await _reservationRepository.GetByIdAsync(id);
+        var emergencyContact = await _emergencyContactRepository.GetByReservationIdAsync(reservation.Id);
+
+        if (reservation.Id == 0)
+            throw new KeyNotFoundException($"Reservation with ID {id} not found.");
+
+        return new ReservationDetailDto
+        {
+            Id = reservation.Id,
+            CheckInDate = reservation.CheckInDate,
+            CheckOutDate = reservation.CheckOutDate,
+            NumberOfGuests = reservation.NumberOfGuests,
+            Guest = new GuestDto
+            {
+                FullName = reservation.Guest.FullName,
+                BirthDate = reservation.Guest.BirthDate,
+                Gender = reservation.Guest.Gender,
+                DocumentType = reservation.Guest.DocumentType,
+                DocumentNumber = reservation.Guest.DocumentNumber,
+                Email = reservation.Guest.Email,
+                Phone = reservation.Guest.Phone
+            },
+            EmergencyContact = new EmergencyContactDto
+            {
+                FullName = emergencyContact.FullName,
+                Phone = emergencyContact.Phone
+            },
+            Room = new RoomDto
+            {
+                Id = reservation.Room.Id,
+                RoomType = reservation.Room.RoomType,
+                BasePrice = reservation.Room.BasePrice,
+                Taxes = reservation.Room.Taxes,
+                Location = reservation.Room.Location
+            }
+        };
     }
 
     public async Task<IEnumerable<ReservationDto>> GetReservationsByRoomIdAsync(long roomId)
@@ -51,7 +105,7 @@
             {
                 FullName = reservationDto.Guest.FullName,
                 BirthDate = reservationDto.Guest.BirthDate,
-                Gender =reservationDto.Guest.Gender,
+                Gender = reservationDto.Guest.Gender,
                 Email = reservationDto.Guest.Email,
                 Phone = reservationDto.Guest.Phone,
                 DocumentType = reservationDto.Guest.DocumentType,
@@ -73,7 +127,7 @@
 
             await _reservationRepository.AddAsync(reservation);
 
-            // Crear contacto de emergencia (si está presente en el DTO)
+            // Create emergency contact:
             if (reservationDto.EmergencyContact != null)
             {
                 var emergencyContact = new EmergencyContact
@@ -86,37 +140,17 @@
                 await _emergencyContactRepository.AddAsync(emergencyContact);
             }
 
-            // Actualizar estado de la habitación
+            // Update room status:
             room.IsAvailable = false;
             await _roomRepository.UpdateAsync(room);
 
-            // Enviar notificación por correo
+            // Send confirmation via email:
             await _emailService.SendReservationConfirmationAsync(guest.Email, reservation.Id);
         }
         catch (Exception ex)
         {
             throw new Exception($"Error: {ex.Message}");
         }
-    }
-
-
-    // Deprecate 
-    public async Task AddReservationAsync(ReservationDto reservationDto)
-    {
-        var room = await _roomRepository.GetByIdAsync(reservationDto.RoomId);
-        if (room == null || !room.IsAvailable)
-            throw new InvalidOperationException("Room is not available");
-
-        var reservation = new Reservation
-        {
-            CheckInDate = reservationDto.CheckInDate,
-            CheckOutDate = reservationDto.CheckOutDate,
-            NumberOfGuests = reservationDto.NumberOfGuests,
-            RoomId = reservationDto.RoomId,
-            IsConfirmed = reservationDto.IsConfirmed
-        };
-
-        await _reservationRepository.AddAsync(reservation);
     }
 
     public async Task DeleteReservationAsync(long id)

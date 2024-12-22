@@ -23,6 +23,11 @@ public class ReservationRepository : IReservationRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Reservation>> GetAllAsync()
+    {
+        return await _context.Reservations.ToListAsync();
+    }
+
     public async Task AddAsync(Reservation entity)
     {
         await _context.Reservations.AddAsync(entity);
@@ -37,14 +42,12 @@ public class ReservationRepository : IReservationRepository
         await _context.SaveChangesAsync();
     }
 
-    public Task<Reservation> GetByIdAsync(long id)
+    public async Task<Reservation> GetByIdAsync(long id)
     {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<Reservation>> GetAllAsync()
-    {
-        throw new NotImplementedException();
+        return await _context.Reservations
+        .Include(r => r.Room)
+        .Include(r => r.Guest)
+        .FirstOrDefaultAsync(r => r.Id == id) ?? new Reservation();
     }
 
     public Task UpdateAsync(Reservation entity)

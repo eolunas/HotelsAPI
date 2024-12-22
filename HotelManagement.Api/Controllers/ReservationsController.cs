@@ -11,6 +11,27 @@ public class ReservationsController : ControllerBase
         _reservationService = reservationService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAllReservations()
+    {
+        var reservations = await _reservationService.GetAllReservationsAsync();
+        return Ok(reservations);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetReservationDetail(long id)
+    {
+        try
+        {
+            var reservationDetail = await _reservationService.GetReservationDetailAsync(id);
+            return Ok(reservationDetail);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     [HttpGet("room/{roomId}")]
     public async Task<IActionResult> GetByRoomId(long roomId)
     {
