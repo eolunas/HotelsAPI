@@ -1,0 +1,697 @@
+{
+	"info": {
+		"_postman_id": "a8c2113a-0409-4c39-b1ff-21ed7aa22d33",
+		"name": "HotelsAPI",
+		"description": "This is the official documentation for **HotelsAPI**, an API designed to manage multiple hotels and their rooms. The API allows customization of hotel details, room configurations, and facilitates making reservations with advanced filtering options. The project repository is available at [GitHub: HotelsAPI](https://github.com/eolunas/HotelsAPI).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31592330",
+		"_collection_link": "https://planetary-shadow-838814.postman.co/workspace/HotelAPI~a0c72cc1-bb91-4419-af5c-2f6234065a43/collection/40576533-a8c2113a-0409-4c39-b1ff-21ed7aa22d33?action=share&source=collection_link&creator=31592330"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Users Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"postman.setEnvironmentVariable(\"token\", `Bearer ${jsonData.token}`)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\":\"admin@hotel.com\",\r\n    \"Password\":\"Admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Auth/login",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"postman.setEnvironmentVariable(\"token\", `Bearer ${jsonData.token}`)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"admin@hotel.com\",\r\n    \"password\":\"Admin123\",\r\n    \"role\":\"Admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Auth/register",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hotels",
+			"item": [
+				{
+					"name": "Get Hotels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Hotels",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Hotel by Id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Hotels/{{HotelId}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"{{HotelId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hotel",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\":\"Las americas\",\r\n    \"Location\":\"Cartagena\",\r\n    \"BasePrice\":250,\r\n    \"IsEnabled\":true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Hotels/create",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"City\": \"Cartagena\",\r\n    \"CheckInDate\": \"2024-12-23\",\r\n    \"CheckOutDate\": \"2024-12-25\",\r\n    \"NumberOfGuests\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Hotels/search",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Romms to Hotels",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"hotelId\": 1,\r\n  \"roomIds\": [\r\n    1,2,3\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Hotels/assign-rooms",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"assign-rooms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Hotel",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 4,\r\n    \"name\": \"Huesped\",\r\n    \"location\": \"Bogota\",\r\n    \"basePrice\": 170000,\r\n    \"isEnabled\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Hotels/update",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Hotel Available",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"IsEnabled\":true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Hotels/{{HotelId}}/status",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"{{HotelId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Hotels",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Hotels/delete/{{HotelIdDelete}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Hotels",
+								"delete",
+								"{{HotelIdDelete}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rooms",
+			"item": [
+				{
+					"name": "Get Rooms",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Rooms",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rooms by HotelId",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Rooms/{{HotelId}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms",
+								"{{HotelId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"RoomType\":\"Super\",\r\n    \"BasePrice\":500,\r\n    \"Taxes\":50,\r\n    \"Location\":\"Cartagena\",\r\n    \"IsAvailable\":true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Rooms/create",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Room",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 2,\r\n    \"RoomType\":\"Double\",\r\n    \"BasePrice\":120,\r\n    \"Taxes\":12,\r\n    \"Location\":\"Cartagena\",\r\n    \"IsAvailable\":true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Rooms/update",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Room Available",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"IsAvailable\":true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Rooms/{{RoomId}}/status",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms",
+								"{{RoomId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get  Room by Id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Rooms/delete/{{RoomIdDelete}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Rooms",
+								"delete",
+								"{{RoomIdDelete}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reservations",
+			"item": [
+				{
+					"name": "Get Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Reservations",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Reservations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reservation by Id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Reservations/{{ReservationId}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Reservations",
+								"{{ReservationId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reservation by Id Room",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/api/Reservations/room/{{RoomId}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Reservations",
+								"room",
+								"{{RoomId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Reservations",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomId\": 1,\n  \"checkInDate\": \"2024-12-20\",\n  \"checkOutDate\": \"2024-12-24\",\n  \"numberOfGuests\": 1,\n  \"guest\": {\n    \"fullName\": \"Eduardo Perez\",\n    \"birthDate\": \"1990-12-22\",\n    \"gender\": \"male\",\n    \"documentType\": \"C.C.\",\n    \"documentNumber\": \"101544226\",\n    \"email\": \"eolunas@gmail.com\",\n    \"phone\": \"31125556\"\n  },\n  \"emergencyContact\": {\n    \"fullName\": \"Yury Paila\",\n    \"phone\": \"332255552\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/Reservations/create",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"Reservations",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Reservation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{local}}/Reservations/{{ReservationId}}",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"Reservations",
+								"{{ReservationId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
