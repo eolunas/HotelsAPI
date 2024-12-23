@@ -141,13 +141,22 @@ public class HotelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SearchHotels([FromBody] HotelSearchCriteriaDto criteria)
     {
-        if (criteria == null) return BadRequest("Invalid search criteria.");
+        if (criteria == null)
+            return BadRequest("Invalid search criteria.");
 
-        var results = await _hotelService.SearchHotelsAsync(criteria);
+        try
+        {
+            var results = await _hotelService.SearchHotelsAsync(criteria);
 
-        if (!results.Any()) return NotFound("No hotels found matching your criteria.");
+            if (!results.Any())
+                return NotFound("No hotels found matching your criteria.");
 
-        return Ok(results);
+            return Ok(results);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
 }

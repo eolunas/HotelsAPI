@@ -37,7 +37,9 @@ public class RoomRepository : IRoomRepository
 
     public async Task<Room> GetByIdAsync(long id)
     {
-        return await _context.Rooms.FindAsync(id);
+        return await _context.Rooms
+            .Include(r => r.Hotel)
+            .FirstOrDefaultAsync(h => h.Id == id) ?? new Room();
     }
 
     public async Task UpdateAsync(Room entity)

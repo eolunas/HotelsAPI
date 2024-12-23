@@ -150,48 +150,57 @@
 
     public async Task<IEnumerable<HotelSearchResultDto>> SearchHotelsAsync(HotelSearchCriteriaDto criteria)
     {
-        // Filtrar hoteles en la ciudad solicitada
-        var hotels = await _hotelRepository.GetAllAsync();
-        var filteredHotels = hotels.Where(h => h.Location.Equals(criteria.City, StringComparison.OrdinalIgnoreCase));
-
         var results = new List<HotelSearchResultDto>();
+        
+        // Validate input dates:
+        HotelSearchCriteriaValidator.Validate(criteria);
 
+        // Filter hotel in the city with available rooms:
+        var hotels = await _hotelRepository.GetAllAsync();
+        var filteredHotels = hotels.Where(h => 
+            h.Location?.Trim().Equals(criteria.City.Trim(), StringComparison.OrdinalIgnoreCase) == true &&
+            h.IsEnabled &&
+            h.Rooms != null && h.Rooms.Any(r => r.IsAvailable))
+            .Select(h => new Hotel
+            {
+                Id = h.Id,
+                Name = h.Name,
+                Location = h.Location,
+                Rooms = h.Rooms.Where(r => r.IsAvailable).ToList()
+            }).ToList();
+
+        // Get the reservation into dates interval:
+        var reservationInDates = _reservationRepository.GetReservationsByDateRangeAsync(criteria.CheckInDate, criteria.CheckOutDate).Result;
+
+        // Verified dates for reservation:
         foreach (var hotel in filteredHotels)
         {
-            // Obtener habitaciones disponibles
-            var rooms = await _roomRepository.GetAllAsync();
-            var availableRooms = rooms
-                .Where(r => r.HotelId == hotel.Id && r.IsAvailable)
-                .ToList();
-
-            // Verificar disponibilidad según reservas existentes
-            foreach (var room in availableRooms.ToList())
+            var availableRooms = new List<RoomDto>();
+            foreach (var room in hotel.Rooms)
             {
-                var reservations = await _reservationRepository.GetAllAsync();
-                if (reservations.Any(r => r.RoomId == room.Id &&
-                                          r.CheckInDate < criteria.CheckOutDate &&
-                                          r.CheckOutDate > criteria.CheckInDate))
+                // Check if room are reserved:
+                var reserved = reservationInDates.Where(r => r.RoomId == room.Id).Any();
+                if (!reserved) availableRooms.Add(new RoomDto
                 {
-                    availableRooms.Remove(room);
-                }
+                    Id = room.Id,
+                    RoomType = room.RoomType,
+                    BasePrice = room.BasePrice,
+                    Taxes = room.Taxes,
+                    Location = room.Location,
+                    IsAvailable = room.IsAvailable,
+                    HotelId = room.HotelId
+                });
             }
 
-            // Verificar capacidad
-            var suitableRooms = availableRooms
-                .Where(r => r.RoomType.Contains("Double") || r.RoomType.Contains("Family")) // Ejemplo de capacidad
-                .Select(r => r.RoomType)
-                .Distinct();
-
-            if (suitableRooms.Any())
-            {
+            // Add the available rooms into hotels response:
+            if(availableRooms.Count > 0) 
                 results.Add(new HotelSearchResultDto
                 {
                     HotelId = hotel.Id,
                     HotelName = hotel.Name,
                     Location = hotel.Location,
-                    AvailableRoomTypes = suitableRooms
+                    AvailableRoomTypes = availableRooms
                 });
-            }
         }
 
         return results;
