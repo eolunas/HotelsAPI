@@ -91,15 +91,20 @@
 
     public async Task CreateReservationAsync(CreateReservationDto reservationDto)
     {
+        // Check the room and hotel:
+        var room = await _roomRepository.GetByIdAsync(reservationDto.RoomId);
+        if (room.Hotel == null || !room.Hotel.IsEnabled)
+        {
+            throw new InvalidOperationException("The selected hotel is not enable.");
+        }
+
+        if (room == null || !room.IsAvailable)
+        {
+            throw new InvalidOperationException("The selected room is not available.");
+        }
+
         try
         {
-            // Check the room:
-            var room = await _roomRepository.GetByIdAsync(reservationDto.RoomId);
-            if (room == null || !room.IsAvailable)
-            {
-                throw new InvalidOperationException("The selected room is not available.");
-            }
-
             // Create or find a Guest:
             var guest = new Guest
             {
@@ -139,10 +144,6 @@
 
                 await _emergencyContactRepository.AddAsync(emergencyContact);
             }
-
-            // Update room status:
-            room.IsAvailable = false;
-            await _roomRepository.UpdateAsync(room);
 
             // Send confirmation via email:
             await _emailService.SendReservationConfirmationAsync(guest.Email, reservation.Id);

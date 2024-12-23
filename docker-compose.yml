@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y                       # Acepta los t�rminos de licencia de SQL Server
+      - SA_PASSWORD=YourPassword123         # Contrase�a del administrador
+    ports:
+      - "1433:1433"                         # Expone el puerto 1433 (SQL Server)
+    networks:
+      - hotelmanagement-net                 # Red para comunicaci�n interna
+
+  api:
+    build:
+      context: .                            # Usa el Dockerfile en el directorio ra�z
+      dockerfile: Dockerfile                # Especifica el archivo Dockerfile
+    container_name: hotelmanagement-api
+    ports:
+      - "5024:5024"                         # Expone el puerto 5024 para la API
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=HotelManagementDB;User Id=sa;Password=YourPassword123;Encrypt=False;TrustServerCertificate=True;
+    depends_on:
+      - sqlserver                           # Se asegura de que SQL Server se inicie primero
+    networks:
+      - hotelmanagement-net
+
+networks:
+  hotelmanagement-net:
+    driver: bridge

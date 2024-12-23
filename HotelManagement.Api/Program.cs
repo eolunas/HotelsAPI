@@ -5,6 +5,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.SetBasePath(AppContext.BaseDirectory);
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                      .AddEnvironmentVariables();
+
+// PORT congiguration:
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5024); 
+});
+
 // JWT Configuration:
 builder.Services.AddAuthentication(options =>
 {
@@ -27,24 +37,43 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
-builder.Services.AddApplicationServices(); // Registro de dependencias
-builder.Services.AddSwaggerDocumentation(); // Configuración de Swagger
-builder.Services.AddCorsPolicies(); // Políticas de CORS
+builder.Services.AddApplicationServices(); // Dependencies
+builder.Services.AddSwaggerDocumentation(); // Swagger config
+builder.Services.AddCorsPolicies(); // CORS Policities
 
-// Configuración de la base de datos
+// DB Connection:
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
-// Configurar middleware
-if (app.Environment.IsDevelopment())
+// DB Migration [for docker]
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwaggerDocumentation(); // Usar Swagger en desarrollo
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        // Verifica y aplica las migraciones automáticamente
+        if (dbContext.Database.GetPendingMigrations().Any())
+        {
+            Console.WriteLine("Aplicando migraciones pendientes...");
+            dbContext.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al aplicar migraciones: {ex.Message}");
+        throw;
+    }
 }
 
-app.UseCorsPolicies();    // Aplicar políticas de CORS
-app.UseAuthentication();  // Middleware para manejar autenticación
+// This is for deploy, not include swagger:
+//if (app.Environment.IsDevelopment())
+app.UseSwaggerDocumentation(); 
+
+
+app.UseCorsPolicies();    // CORS Policities
+app.UseAuthentication();  // Middleware for Auth
 app.UseAuthorization();
 
 app.MapControllers();
