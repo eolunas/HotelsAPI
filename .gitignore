@@ -364,7 +364,6 @@ FodyWeavers.xsd
 
 # Important configuration
 appsettings.json
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
+
+# CloudFormation file
+ecs-cloudformation-template.yml

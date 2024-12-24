@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: HotelManagementCluster
+
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ECSTaskExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:GetAuthorizationToken
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                  - ec2:AttachNetworkInterface
+                  - servicediscovery:*
+                Resource: "*"
+
+  SQLServerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: sqlserver-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      Cpu: "512"
+      Memory: "1024"
+      ContainerDefinitions:
+        - Name: sqlserver
+          Image: "<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/sqlserver:2022-latest"
+          Memory: 1024
+          Cpu: 512
+          PortMappings:
+            - ContainerPort: 1433
+          Environment:
+            - Name: ACCEPT_EULA
+              Value: "Y"
+            - Name: SA_PASSWORD
+              Value: "<contraseña_sa>"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/sqlserver
+              awslogs-region: us-east-1
+              awslogs-stream-prefix: sqlserver
+
+  ApiTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: api-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      Cpu: "512"
+      Memory: "1024"
+      ContainerDefinitions:
+        - Name: hotelmanagement-api
+          Image: "<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/hotelmanagement-api:latest"
+          Memory: 1024
+          Cpu: 512
+          PortMappings:
+            - ContainerPort: 5024
+          Environment:
+            - Name: ConnectionStrings__DefaultConnection
+              Value: "Server=sqlserver.hotelmanagement.local,1433;Database=<nombre_bd>;User Id=sa;Password=<contraseña_sa>;Encrypt=False;TrustServerCertificate=True;"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/hotelmanagement-api
+              awslogs-region: us-east-1
+              awslogs-stream-prefix: api
+
+  SQLServerService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref SQLServerTaskDefinition
+      ServiceRegistries:
+        - RegistryArn: !GetAtt SQLServerServiceDiscovery.Arn
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - <subnet_id>
+          SecurityGroups:
+            - <security_group_id>
+          AssignPublicIp: ENABLED
+
+  ApiService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref ApiTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - <subnet_id>
+          SecurityGroups:
+            - <security_group_id>
+          AssignPublicIp: ENABLED
+
+  SQLServerServiceDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: "sqlserver"
+      NamespaceId: !Ref ServiceDiscoveryNamespace
+      DnsConfig:
+        DnsRecords:
+          - Type: A
+            TTL: 60
+
+  ServiceDiscoveryNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: "hotelmanagement.local"
+      Vpc: <vpc_id>
+      Description: "Private DNS for service discovery"
+
+Outputs:
+  ClusterName:
+    Description: The name of the ECS Cluster
+    Value: !Ref ECSCluster

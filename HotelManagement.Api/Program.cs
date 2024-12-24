@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.SetBasePath(AppContext.BaseDirectory);
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                      .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                       .AddEnvironmentVariables();
 
 // PORT congiguration:
@@ -70,7 +71,6 @@ using (var scope = app.Services.CreateScope())
 // This is for deploy, not include swagger:
 //if (app.Environment.IsDevelopment())
 app.UseSwaggerDocumentation(); 
-
 
 app.UseCorsPolicies();    // CORS Policities
 app.UseAuthentication();  // Middleware for Auth
