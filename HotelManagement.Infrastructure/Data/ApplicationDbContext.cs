@@ -9,6 +9,8 @@ public class ApplicationDbContext : DbContext
         _configuration = configuration;
     }
 
+    public ApplicationDbContext() { }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -27,6 +29,10 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Convert Role to string:
+        modelBuilder.Entity<User>()
+        .Property(u => u.Role)
+        .HasConversion<string>();
 
         // Relation Room → Hotel (Cascade delete HotelId)
         modelBuilder.Entity<Room>()

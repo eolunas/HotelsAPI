@@ -21,7 +21,7 @@ public class AuthController : ControllerBase
             var newUser = await _authService.RegisterUserAsync(registrationDto);
 
             // Generate JWT token
-            var token = _jwtService.GenerateToken(newUser.Id.ToString(), newUser.Email, newUser.Role);
+            var token = _jwtService.GenerateToken(newUser.Id.ToString(), newUser.Email, newUser.Role.ToString());
 
             return Ok(new AuthResultDto { Token = token, Expiration = DateTime.UtcNow.AddMinutes(60) });
         }
@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
             var userLogged = await _authService.LoginUserAsync(loginDto);
 
             // Generate JWT token
-            var token = _jwtService.GenerateToken(userLogged.Id.ToString(), userLogged.Email, userLogged.Role);
+            var token = _jwtService.GenerateToken(userLogged.Id.ToString(), userLogged.Email, userLogged.Role.ToString());
 
             return Ok(new AuthResultDto { Token = token, Expiration = DateTime.UtcNow.AddMinutes(60) });
         }

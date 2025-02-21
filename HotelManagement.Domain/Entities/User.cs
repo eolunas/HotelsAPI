@@ -14,8 +14,8 @@ public class User
     [Required, MaxLength(255)]
     public string PasswordHash { get; set; }
 
-    [Required, MaxLength(50)]
-    public string Role { get; set; }
+    [Required]
+    public UserRole Role { get; set; }
 
     public ICollection<Hotel> CreatedHotels { get; set; }
     public ICollection<Room> CreatedRooms { get; set; }

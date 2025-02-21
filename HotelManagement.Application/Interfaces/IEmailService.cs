@@ -1,5 +1,5 @@
 ﻿public interface IEmailService
 {
     Task SendEmailAsync(string email, string subject, string body);
-    Task SendReservationConfirmationAsync(string email, long reservationId);
+    Task SendReservationConfirmationAsync(Guest guest, Reservation reservation);
 }

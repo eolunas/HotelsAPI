@@ -42,14 +42,28 @@ public class ReservationsController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateReservation(CreateReservationDto reservationDto)
     {
+        if (reservationDto == null)
+        {
+            return BadRequest(new { message = "Invalid reservation data." });
+        }
+
         try
         {
             await _reservationService.CreateReservationAsync(reservationDto);
-            return Ok(new { message = "Reservation created successfully." });
+            return CreatedAtAction(nameof(GetByRoomId), new { roomId = reservationDto.RoomId },
+                new { message = "Reservation created successfully." });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return UnprocessableEntity(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
+            return StatusCode(500, new { message = "An unexpected error occurred.", error = ex.Message });
         }
     }
 

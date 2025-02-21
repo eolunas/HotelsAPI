@@ -24,7 +24,7 @@
             Id = h.Id,
             Name = h.Name,
             Location = h.Location,
-            BasePrice = h.BasePrice,
+            LowPrice = h.Rooms != null && h.Rooms.Count != 0 ? h.Rooms.Min(r => r.BasePrice + r.Taxes) : 0,
             IsEnabled = h.IsEnabled,
             CreatedByUserId = h.CreatedByUserId,
             Rooms = h.Rooms?.Select(r => new RoomDto
@@ -34,6 +34,7 @@
                 Taxes = r.Taxes,
                 BasePrice = r.BasePrice,
                 Location = r.Location,
+                MaxNumberOfGuest = r.MaxNumberOfGuest,
                 IsAvailable = r.IsAvailable,
                 HotelId = r.HotelId
             }).ToList() ?? []
@@ -49,7 +50,7 @@
             Id = hotel.Id,
             Name = hotel.Name,
             Location = hotel.Location,
-            BasePrice = hotel.BasePrice,
+            LowPrice = hotel.Rooms != null && hotel.Rooms.Count != 0 ? hotel.Rooms.Min(r => r.BasePrice + r.Taxes) : 0,
             IsEnabled = hotel.IsEnabled,
             Rooms = hotel.Rooms?.Select(r => new RoomDto
             {
@@ -57,6 +58,7 @@
                 RoomType = r.RoomType,
                 Taxes = r.Taxes,
                 BasePrice = r.BasePrice,
+                MaxNumberOfGuest = r.MaxNumberOfGuest,
                 Location = r.Location,
                 IsAvailable = r.IsAvailable,
                 HotelId = r.HotelId
@@ -76,7 +78,6 @@
         {
             Name = createHotelDto.Name,
             Location = createHotelDto.Location,
-            BasePrice = createHotelDto.BasePrice,
             IsEnabled = createHotelDto.IsEnabled,
             CreatedByUserId = userId
         };
@@ -86,16 +87,9 @@
 
     public async Task UpdateHotelAsync(UpdateHotelDto updateHotelDto)
     {
-        var hotel = await _hotelRepository.GetByIdAsync(updateHotelDto.Id);
-
-        if (hotel == null)
-        {
-            throw new KeyNotFoundException("Hotel not found.");
-        }
-
+        var hotel = await _hotelRepository.GetByIdAsync(updateHotelDto.Id) ?? throw new KeyNotFoundException("Hotel not found.");
         hotel.Name = updateHotelDto.Name;
         hotel.Location = updateHotelDto.Location;
-        hotel.BasePrice = updateHotelDto.BasePrice;
         hotel.IsEnabled = updateHotelDto.IsEnabled;
 
         await _hotelRepository.UpdateAsync(hotel);
@@ -152,10 +146,10 @@
     {
         var results = new List<HotelSearchResultDto>();
         
-        // Validate input dates:
+        // Validate criteria inputs:
         HotelSearchCriteriaValidator.Validate(criteria);
 
-        // Filter hotel in the city with available rooms:
+        // Filter hotels in the city with available rooms and max number of guest according to criteria:
         var hotels = await _hotelRepository.GetAllAsync();
         var filteredHotels = hotels.Where(h => 
             h.Location?.Trim().Equals(criteria.City.Trim(), StringComparison.OrdinalIgnoreCase) == true &&
@@ -166,7 +160,7 @@
                 Id = h.Id,
                 Name = h.Name,
                 Location = h.Location,
-                Rooms = h.Rooms.Where(r => r.IsAvailable).ToList()
+                Rooms = h.Rooms.Where(r => r.IsAvailable && r.MaxNumberOfGuest >= criteria.NumberOfGuests).ToList()
             }).ToList();
 
         // Get the reservation into dates interval:
@@ -187,6 +181,7 @@
                     BasePrice = room.BasePrice,
                     Taxes = room.Taxes,
                     Location = room.Location,
+                    MaxNumberOfGuest = room.MaxNumberOfGuest,
                     IsAvailable = room.IsAvailable,
                     HotelId = room.HotelId
                 });

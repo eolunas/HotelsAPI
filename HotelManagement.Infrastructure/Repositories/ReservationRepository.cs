@@ -45,6 +45,7 @@ public class ReservationRepository : IReservationRepository
     public async Task<Reservation> GetByIdAsync(long id)
     {
         return await _context.Reservations
+        .Include(r => r.Hotel)
         .Include(r => r.Room)
         .Include(r => r.Guest)
         .FirstOrDefaultAsync(r => r.Id == id) ?? new Reservation();

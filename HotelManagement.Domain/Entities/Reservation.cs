@@ -15,9 +15,14 @@ public class Reservation
     public DateOnly CheckOutDate { get; set; }
     
     [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Number of Guests must be at least 1")]
     public int NumberOfGuests { get; set; }
 
-    public bool IsConfirmed { get; set; } 
+    public bool IsConfirmed { get; set; }
+
+    [ForeignKey("Hotel")]
+    public long HotelId { get; set; }
+    public Hotel Hotel { get; set; }
 
     [ForeignKey("Room")]
     public long RoomId { get; set; } 
@@ -26,4 +31,7 @@ public class Reservation
     [ForeignKey("Guest")]
     public long GuestId { get; set; }
     public Guest Guest { get; set; }
+
+    [NotMapped]
+    public int Nights => (CheckOutDate.DayNumber - CheckInDate.DayNumber);
 }

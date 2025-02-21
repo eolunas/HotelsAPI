@@ -3,7 +3,7 @@
     public long Id { get; set; }
     public string Name { get; set; }
     public string Location { get; set; }
-    public decimal BasePrice { get; set; }
+    public decimal LowPrice { get; set; }
     public bool IsEnabled { get; set; }
     public long CreatedByUserId { get; set; }
 

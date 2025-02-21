@@ -4,6 +4,8 @@
     public DateOnly CheckInDate { get; set; }
     public DateOnly CheckOutDate { get; set; }
     public int NumberOfGuests { get; set; }
+    public long HotelId { get; set; }
     public long RoomId { get; set; }
     public bool IsConfirmed { get; set; }
+    public int Nights {  get; set; }
 }

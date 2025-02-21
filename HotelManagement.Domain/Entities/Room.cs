@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 [Table("Rooms")]
 public class Room
@@ -19,6 +20,9 @@ public class Room
 
     [Required, MaxLength(50)]
     public string Location { get; set; }
+
+    [Required, DefaultValue(1)]
+    public int MaxNumberOfGuest { get; set; }
 
     public bool IsAvailable { get; set; }
 

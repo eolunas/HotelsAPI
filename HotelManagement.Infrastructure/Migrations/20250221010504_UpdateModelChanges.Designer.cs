@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250221010504_UpdateModelChanges")]
+    partial class UpdateModelChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +146,6 @@ namespace HotelManagement.Infrastructure.Migrations
                     b.Property<long>("GuestId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("HotelId")
-                        .HasColumnType("bigint");
-
                     b.Property<bool>("IsConfirmed")
                         .HasColumnType("bit");
 
@@ -158,8 +158,6 @@ namespace HotelManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GuestId");
-
-                    b.HasIndex("HotelId");
 
                     b.HasIndex("RoomId");
 
@@ -190,9 +188,6 @@ namespace HotelManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("MaxNumberOfGuest")
-                        .HasColumnType("int");
 
                     b.Property<string>("RoomType")
                         .IsRequired()
@@ -269,12 +264,6 @@ namespace HotelManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Room", "Room")
                         .WithMany()
                         .HasForeignKey("RoomId")
@@ -282,8 +271,6 @@ namespace HotelManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Guest");
-
-                    b.Navigation("Hotel");
 
                     b.Navigation("Room");
                 });

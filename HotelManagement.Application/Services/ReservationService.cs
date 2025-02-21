@@ -2,12 +2,14 @@
 {
     private readonly IReservationRepository _reservationRepository;
     private readonly IRoomRepository _roomRepository;
+    private readonly IRepository<Hotel> _hotelRepository;
     private readonly IGuestRepository _guestRepository;
     private readonly IEmergencyContactRepository _emergencyContactRepository;
     private readonly IEmailService _emailService;
 
     public ReservationService(
         IReservationRepository reservationRepository,
+        IRepository<Hotel> hotelRepository,
         IRoomRepository roomRepository,
         IGuestRepository guestRepository,
         IEmergencyContactRepository emergencyContactRepository,
@@ -15,6 +17,7 @@
         )
     {
         _reservationRepository = reservationRepository;
+        _hotelRepository = hotelRepository;
         _roomRepository = roomRepository;
         _guestRepository = guestRepository;
         _emailService = emailService;
@@ -30,8 +33,10 @@
             CheckInDate = r.CheckInDate,
             CheckOutDate = r.CheckOutDate,
             NumberOfGuests = r.NumberOfGuests,
+            HotelId = r.HotelId,
             RoomId = r.RoomId,
-            IsConfirmed = r.IsConfirmed
+            IsConfirmed = r.IsConfirmed,
+            Nights = r.Nights,
         });
     }
 
@@ -43,12 +48,17 @@
         if (reservation.Id == 0)
             throw new KeyNotFoundException($"Reservation with ID {id} not found.");
 
+        // TotalCost calculation: 
+        var totalCost = reservation.Nights * (reservation.Room.BasePrice + reservation.Room.Taxes);
+
         return new ReservationDetailDto
         {
             Id = reservation.Id,
             CheckInDate = reservation.CheckInDate,
             CheckOutDate = reservation.CheckOutDate,
             NumberOfGuests = reservation.NumberOfGuests,
+            Nights = reservation.Nights,
+            TotalCost = totalCost,
             Guest = new GuestDto
             {
                 FullName = reservation.Guest.FullName,
@@ -64,7 +74,13 @@
                 FullName = emergencyContact.FullName,
                 Phone = emergencyContact.Phone
             },
-            Room = new RoomDto
+            Hotel = new HotelDetailDto
+            {
+                Id = reservation.Hotel.Id,
+                Name = reservation.Hotel.Name,
+                Location = reservation.Hotel.Location, 
+            },
+            Room = new RoomDetailDto
             {
                 Id = reservation.Room.Id,
                 RoomType = reservation.Room.RoomType,
@@ -84,13 +100,18 @@
             CheckInDate = r.CheckInDate,
             CheckOutDate = r.CheckOutDate,
             NumberOfGuests = r.NumberOfGuests,
+            HotelId = r.HotelId,
             RoomId = r.RoomId,
-            IsConfirmed = r.IsConfirmed
+            IsConfirmed = r.IsConfirmed,
+            Nights = r.Nights,
         });
     }
 
     public async Task CreateReservationAsync(CreateReservationDto reservationDto)
     {
+        // Validate de input criteria:
+        ReservationValidator.Validate(reservationDto);
+
         // Check the room and hotel:
         var room = await _roomRepository.GetByIdAsync(reservationDto.RoomId);
         if (room.Hotel == null || !room.Hotel.IsEnabled)
@@ -101,6 +122,24 @@
         if (room == null || !room.IsAvailable)
         {
             throw new InvalidOperationException("The selected room is not available.");
+        }
+
+        if (room.MaxNumberOfGuest < reservationDto.NumberOfGuests)
+        {
+            throw new InvalidOperationException("The selected room has not enough capacity for the number of guests.");
+        }
+
+        // Verify the availability of the room: 
+        var roomReservations = await GetReservationsByRoomIdAsync(reservationDto.RoomId);
+
+        bool isRoomReserved = roomReservations.Any(existing =>
+            reservationDto.CheckInDate < existing.CheckOutDate &&
+            reservationDto.CheckOutDate > existing.CheckInDate
+        );
+
+        if (isRoomReserved)
+        {
+            throw new InvalidOperationException("The room is already reserved for the selected dates.");
         }
 
         try
@@ -127,6 +166,7 @@
                 CheckOutDate = reservationDto.CheckOutDate,
                 NumberOfGuests = reservationDto.NumberOfGuests,
                 IsConfirmed = true,
+                HotelId = room.HotelId ?? 0,
                 GuestId = guest.Id
             };
 
@@ -146,7 +186,7 @@
             }
 
             // Send confirmation via email:
-            await _emailService.SendReservationConfirmationAsync(guest.Email, reservation.Id);
+            await _emailService.SendReservationConfirmationAsync(guest, reservation);
         }
         catch (Exception ex)
         {

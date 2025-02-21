@@ -9,6 +9,10 @@
 
     public async Task<User> RegisterUserAsync(UserRegistrationDto registrationDto)
     {
+        if (!Enum.TryParse<UserRole>(registrationDto.Role, true, out var role))
+        {
+            throw new InvalidOperationException("Invalid role. Allowed values: Admin, User, Guest.");
+        }
 
         // Check if the user already exists
         var existingUser = (await _userRepository.GetAllAsync())
@@ -24,7 +28,7 @@
         {
             Email = registrationDto.Email,
             PasswordHash = hashedPassword,
-            Role = registrationDto.Role
+            Role = role
         };
 
         await _userRepository.AddAsync(newUser);

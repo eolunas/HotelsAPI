@@ -19,6 +19,7 @@
             RoomType = r.RoomType,
             BasePrice = r.BasePrice,
             Taxes = r.Taxes,
+            MaxNumberOfGuest = r.MaxNumberOfGuest,
             Location = r.Location,
             IsAvailable = r.IsAvailable,
             HotelId = r.HotelId
@@ -35,6 +36,7 @@
             BasePrice = r.BasePrice,
             Taxes = r.Taxes,
             Location = r.Location,
+            MaxNumberOfGuest = r.MaxNumberOfGuest,
             IsAvailable = r.IsAvailable,
             HotelId = r.HotelId
         });
@@ -54,6 +56,7 @@
             BasePrice = createRoomDto.BasePrice,
             Taxes = createRoomDto.Taxes,
             Location = createRoomDto.Location,
+            MaxNumberOfGuest = createRoomDto.MaxNumberOfGuest,
             IsAvailable = createRoomDto.IsAvailable,
             CreatedByUserId = userId
         };
@@ -69,6 +72,7 @@
         room.BasePrice = roomDto.BasePrice;
         room.Taxes = roomDto.Taxes;
         room.Location = roomDto.Location;
+        room.MaxNumberOfGuest = roomDto.MaxNumberOfGuest;
         room.IsAvailable = roomDto.IsAvailable;
 
         await _roomRepository.UpdateAsync(room);
