@@ -280,40 +280,186 @@ docker push <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/sqlserver:2022-late
 
 ## **Uso de la API**
 
+### **🔐 Autenticación**
+Algunos endpoints requieren autenticación mediante **JWT**. Para obtener un token de acceso, usa:
+
+```http
+POST /api/Auth/login
+```
+
+**Body (JSON):**
+```json
+{
+    "email": "user@example.com",
+    "password": "yourpassword"
+}
+```
+
+**Respuesta (200 OK):**
+```json
+{
+    "errorMessage": null,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI..."
+    "expiration": "2025-02-21T06:04:59.2730887Z"
+}
+```
+
+---
+
 ### Endpoints Principales:
 
-Adicionalmente a los CRUD implementados para Hoteles y Habitaciones se crearón las siguientes funcionalidades:
-1. **Listar Reservas**
-   ```http
-   GET /api/Reservations
-   ```
+Adicionalmente a los CRUD implementados para Hoteles y Habitaciones, se crearon las siguientes funcionalidades:
 
-2. **Ver Detalles de una Reserva**
-   ```http
-   GET /api/Reservations/{id}
-   ```
+### **1️⃣ Listar Reservas**
+```http
+GET /api/Reservations
+```
+**Descripción**: Obtiene todas las reservas del sistema.
 
-3. **Asignar Habitaciones a un Hotel**
-   ```http
-   POST /api/Hotels/assign-rooms
-   Body:
-   {
-       "hotelId": 1,
-       "roomIds": [101, 102, 103]
-   }
-   ```
+**Respuesta (200 OK):**
+```json
+[
+    {
+        "id": 1,
+        "guestName": "John Doe",
+        "hotelName": "Hotel Cartagena",
+        "roomType": "Deluxe",
+        "checkInDate": "2024-12-23",
+        "checkOutDate": "2024-12-25",
+        "numberOfGuests": 2
+    }
+]
+```
 
-4. **Buscar Hoteles**
-   ```http
-   POST /api/Hotels/search
-   Body:
-   {
-      "City": "Cartagena",
-      "CheckInDate": "2024-12-23",
-      "CheckOutDate": "2024-12-25",
-      "NumberOfGuests": 2
-   }
-   ```
+---
+
+### **2️⃣ Ver Detalles de una Reserva**
+```http
+GET /api/Reservations/{id}
+```
+**Descripción**: Obtiene la información de una reserva específica.
+
+**Ejemplo:**
+```http
+GET /api/Reservations/5
+```
+
+**Respuesta (200 OK):**
+```json
+{
+    "id": 5,
+    "guestName": "Alice Smith",
+    "hotelName": "Hotel Bogota",
+    "roomType": "Suite",
+    "checkInDate": "2024-12-30",
+    "checkOutDate": "2025-01-05",
+    "numberOfGuests": 3
+}
+```
+
+---
+
+### **3️⃣ Asignar Habitaciones a un Hotel**
+```http
+POST /api/Hotels/assign-rooms
+```
+**Descripción**: Asigna habitaciones a un hotel específico.
+
+**Body (JSON):**
+```json
+{
+    "hotelId": 1,
+    "roomIds": [101, 102, 103]
+}
+```
+
+**Respuesta (200 OK):**
+```json
+{
+    "message": "Rooms assigned successfully."
+}
+```
+
+---
+
+### **4️⃣ Buscar Hoteles**
+```http
+POST /api/Hotels/search
+```
+**Descripción**: Busca hoteles disponibles según la ciudad, fechas y número de huéspedes.
+
+**Body (JSON):**
+```json
+{
+    "city": "Cartagena",
+    "checkInDate": "2024-12-23",
+    "checkOutDate": "2024-12-25",
+    "numberOfGuests": 2
+}
+```
+
+**Respuesta (200 OK):**
+```json
+[
+    {
+        "hotelId": 3,
+        "name": "Hotel Cartagena",
+        "location": "Cartagena, Colombia",
+        "lowPrice": 120,
+        "isAvailable": true
+    }
+]
+```
+
+---
+
+### **5️⃣ Crear una Reserva**
+```http
+POST /api/Reservations/create
+```
+**Descripción**: Crea una nueva reserva para un huésped en una habitación específica.
+
+**Body (JSON):**
+```json
+{
+  "roomId": 2,
+  "checkInDate": "2025-02-26",
+  "checkOutDate": "2025-02-28",
+  "numberOfGuests": 2,
+  "guest": {
+    "fullName": "Juanito Perez",
+    "birthDate": "1992-02-21",
+    "gender": "Male",
+    "documentType": "NationalID",
+    "documentNumber": "10144788",
+    "email": "eolunas@gmail.com",
+    "phone": "3112225545"
+  },
+  "emergencyContact": {
+    "fullName": "Camila Juarez",
+    "phone": "5566699877"
+  }
+}
+```
+
+**Posibles Errores**:
+- **409 Conflict**: Si la habitación ya está reservada en esas fechas.
+- **422 Unprocessable Entity**: Si la reserva no cumple con las reglas de negocio.
+- **400 Bad Request**: Si los datos enviados son incorrectos.
+
+**Respuesta Exitosa (201 Created):**
+```json
+{
+    "message": "Reservation created successfully.",
+    "reservationId": 10
+}
+```
+
+🛎️ **Correo de Confirmación**:  
+Después de crear una reserva, el huésped recibirá un correo con los detalles de la reserva.  
+
+💌 **Ejemplo del correo:**  
+![Correo de Confirmación](images/confirmation-email.png)
 
 ---
 
