@@ -105,22 +105,23 @@ Esta es una solución completa para la gestión de un sistema de reservas de hot
 
 ```json
 {
-  "Jwt": {
-    "Key": "YourJwtSecretKey",
-    "Issuer": "YourIssuer",
-    "Audience": "YourAudience"
-  },
   "ConnectionStrings": {
-    "DefaultConnection": "Server=sqlserver,1433;Database=HotelManagementDB;User Id=sa;Password=YourPassword123;"
-  },
-  "EmailSettings": {
-  "Host": "smtp.gmail.com",
-  "Port": "587",
-  "EnableSsl": "true",
-  "Username": "hotelmanagerapi@gmail.com",
-  "Password": "jvpe asim trdt ecco",
-  "From": "hotelmanagerapi@gmail.com"
-}
+      "DefaultConnection": "Your connection to DB"
+    },
+    "Jwt": {
+      "Key": "Your key base",
+      "Issuer": "HotelManagementApi",
+      "Audience": "HotelManagementClient",
+      "TokenValidityInMinutes": 60
+    },
+    "EmailSettings": {
+      "Host": "smtp.gmail.com",
+      "Port": "587",
+      "EnableSsl": "true",
+      "Username": "example@gmail.com",
+      "Password": "your pasword",
+      "From": "example@gmail.com"
+    }
 }
 ```
 
