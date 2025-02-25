@@ -51,19 +51,24 @@ var app = builder.Build();
 // DB Migration [for docker]
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
     try
     {
-        // Verifica y aplica las migraciones automáticamente
+        // Verify migration and execute auto:
         if (dbContext.Database.GetPendingMigrations().Any())
         {
-            Console.WriteLine("Aplicando migraciones pendientes...");
+            Console.WriteLine("Applying migrations...");
             dbContext.Database.Migrate();
         }
+
+        Console.WriteLine("Executing SeedData...");
+        SeedData.InitializeAsync(services).Wait();
+        Console.WriteLine("SeedData completed.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error al aplicar migraciones: {ex.Message}");
+        Console.WriteLine($"Error in DB: {ex.Message}");
         throw;
     }
 }

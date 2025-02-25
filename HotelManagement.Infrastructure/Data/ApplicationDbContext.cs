@@ -26,6 +26,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<Guest> Guests { get; set; }
     public DbSet<EmergencyContact> EmergencyContacts { get; set; }
+    public DbSet<Country> Countries { get; set; } 
+    public DbSet<Location> Locations { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,6 +80,12 @@ public class ApplicationDbContext : DbContext
                 )
                 .HasColumnType("date"); 
         });
+
+        modelBuilder.Entity<Location>()
+            .HasOne(l => l.Country)
+            .WithMany(c => c.Locations)
+            .HasForeignKey(l => l.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         base.OnModelCreating(modelBuilder);
 

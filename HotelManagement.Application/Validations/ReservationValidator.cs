@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-
-public static class ReservationValidator
+﻿public static class ReservationValidator
 {
     public static void Validate(CreateReservationDto criteria)
     {
@@ -19,14 +17,22 @@ public static class ReservationValidator
             throw new ValidationException("Number of guests must be one person or greater");
         }
 
-        if (!Enum.TryParse<GenderType>(criteria.Guest.Gender, true, out var gender))
+        if (criteria.NumberOfGuests != criteria.Guests.Count)
         {
-            throw new ValidationException("Invalid gender. Allowed values: Male, Female, NonBinary, Other." );
+            throw new ValidationException("The number of guests [NumberOfGuests] does not match the actual number of guest entries.");
         }
 
-        if (!Enum.TryParse<DocumentType>(criteria.Guest.DocumentType, true, out var documentType))
+        foreach (var guest in criteria.Guests)
         {
-            throw new ValidationException("Invalid document type. Allowed values: Passport, NationalID, DriverLicense.");
+            if (!Enum.TryParse<GenderType>(guest.Gender, true, out var gender))
+            {
+                throw new ValidationException($"{guest.FullName} Invalid gender. Allowed values: Male, Female, NonBinary, Other.");
+            }
+
+            if (!Enum.TryParse<DocumentType>(guest.DocumentType, true, out var documentType))
+            {
+                throw new ValidationException($"{guest.FullName} Invalid document type. Allowed values: Passport, NationalID, DriverLicense.");
+            }
         }
     }
 }

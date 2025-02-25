@@ -1,83 +1,62 @@
 ﻿public class HotelService : IHotelService
 {
-    private readonly IRepository<Hotel> _hotelRepository;
+    private readonly IHotelRepository _hotelRepository;
     private readonly IRoomRepository _roomRepository;
     private readonly IReservationRepository _reservationRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILocationRepository _locationRepository;
 
-    public HotelService(IRepository<Hotel> hotelRepository,
+    public HotelService(IHotelRepository hotelRepository,
                         IRoomRepository roomRepository,
                         IReservationRepository reservationRepository,
-                        IUserRepository userRepository)
+                        IUserRepository userRepository,
+                        ILocationRepository locationRepository)
     {
         _hotelRepository = hotelRepository;
         _roomRepository = roomRepository;
         _reservationRepository = reservationRepository;
         _userRepository = userRepository;
+        _locationRepository = locationRepository;
+    }
+
+    public async Task<IEnumerable<HotelDto>> GetFilteredHotelsAsync(bool? isEnabled, long? locationId, long? createdByUserId)
+    {
+        var hotels = await _hotelRepository.GetFilteredHotelsAsync(isEnabled, locationId, createdByUserId);
+        return hotels.Select(HotelDto.FromEntity);
     }
 
     public async Task<IEnumerable<HotelDto>> GetAllHotelsAsync()
     {
         var hotels = await _hotelRepository.GetAllAsync();
-        return hotels.Select(h => new HotelDto
-        {
-            Id = h.Id,
-            Name = h.Name,
-            Location = h.Location,
-            LowPrice = h.Rooms != null && h.Rooms.Count != 0 ? h.Rooms.Min(r => r.BasePrice + r.Taxes) : 0,
-            IsEnabled = h.IsEnabled,
-            CreatedByUserId = h.CreatedByUserId,
-            Rooms = h.Rooms?.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                RoomType = r.RoomType,
-                Taxes = r.Taxes,
-                BasePrice = r.BasePrice,
-                Location = r.Location,
-                MaxNumberOfGuest = r.MaxNumberOfGuest,
-                IsAvailable = r.IsAvailable,
-                HotelId = r.HotelId
-            }).ToList() ?? []
-        });
+        return hotels.Select(HotelDto.FromEntity);
     }
 
     public async Task<HotelDto> GetHotelByIdAsync(long id)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
         if (hotel.Id == 0) throw new KeyNotFoundException("Hotel not found");
-        return new HotelDto
-        {
-            Id = hotel.Id,
-            Name = hotel.Name,
-            Location = hotel.Location,
-            LowPrice = hotel.Rooms != null && hotel.Rooms.Count != 0 ? hotel.Rooms.Min(r => r.BasePrice + r.Taxes) : 0,
-            IsEnabled = hotel.IsEnabled,
-            Rooms = hotel.Rooms?.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                RoomType = r.RoomType,
-                Taxes = r.Taxes,
-                BasePrice = r.BasePrice,
-                MaxNumberOfGuest = r.MaxNumberOfGuest,
-                Location = r.Location,
-                IsAvailable = r.IsAvailable,
-                HotelId = r.HotelId
-            }).ToList() ?? []
-        };
+        return HotelDto.FromEntity(hotel);
     }
 
     public async Task AddHotelAsync(CreateHotelDto createHotelDto, int userId)
     {
         var userExists = await _userRepository.ExistsAsync(userId);
         if (!userExists)
-        {
-            throw new KeyNotFoundException("The user does not exist.");
-        }
+            throw new KeyNotFoundException("The user ID provided does not exist.");
+
+        var locationExists = await _locationRepository.ExistsAsync(createHotelDto.LocationId);
+        if (!locationExists)
+            throw new KeyNotFoundException($"Invalid LocationId: {createHotelDto.LocationId}. The specified city does not exist.");
+
+        var normalizedName = createHotelDto.Name.Trim().ToLower();
+        var hotelExists = await _hotelRepository.ExistsInLocationAsync(normalizedName, createHotelDto.LocationId);
+        if (hotelExists)
+            throw new ValidationException($"A hotel with the name '{createHotelDto.Name}' already exists in this location.");
 
         var newHotel = new Hotel
         {
-            Name = createHotelDto.Name,
-            Location = createHotelDto.Location,
+            Name = createHotelDto.Name.Trim(),
+            LocationId = createHotelDto.LocationId,
             IsEnabled = createHotelDto.IsEnabled,
             CreatedByUserId = userId
         };
@@ -88,8 +67,15 @@
     public async Task UpdateHotelAsync(UpdateHotelDto updateHotelDto)
     {
         var hotel = await _hotelRepository.GetByIdAsync(updateHotelDto.Id) ?? throw new KeyNotFoundException("Hotel not found.");
+
+        var locationExists = await _locationRepository.ExistsAsync(updateHotelDto.LocationId);
+        if (!locationExists)
+        {
+            throw new KeyNotFoundException("Invalid LocationId. The city does not exist.");
+        }
+
         hotel.Name = updateHotelDto.Name;
-        hotel.Location = updateHotelDto.Location;
+        hotel.LocationId = updateHotelDto.LocationId;
         hotel.IsEnabled = updateHotelDto.IsEnabled;
 
         await _hotelRepository.UpdateAsync(hotel);
@@ -152,7 +138,7 @@
         // Filter hotels in the city with available rooms and max number of guest according to criteria:
         var hotels = await _hotelRepository.GetAllAsync();
         var filteredHotels = hotels.Where(h => 
-            h.Location?.Trim().Equals(criteria.City.Trim(), StringComparison.OrdinalIgnoreCase) == true &&
+            h.LocationId.Equals(criteria.LocationId) &&
             h.IsEnabled &&
             h.Rooms != null && h.Rooms.Any(r => r.IsAvailable))
             .Select(h => new Hotel
@@ -193,7 +179,7 @@
                 {
                     HotelId = hotel.Id,
                     HotelName = hotel.Name,
-                    Location = hotel.Location,
+                    Location = hotel.Location.CityName,
                     AvailableRoomTypes = availableRooms
                 });
         }

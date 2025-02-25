@@ -11,8 +11,11 @@ public class Hotel
     [Required, MaxLength(100)]
     public string Name { get; set; }
 
-    [Required, MaxLength(100)]
-    public string Location { get; set; }
+    [Required]
+    public long LocationId { get; set; }
+
+    [ForeignKey("LocationId")]
+    public Location Location { get; set; }
 
     public bool IsEnabled { get; set; }
 

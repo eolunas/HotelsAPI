@@ -1,6 +1,7 @@
 ﻿public interface IHotelService
 {
     Task<IEnumerable<HotelDto>> GetAllHotelsAsync();
+    Task<IEnumerable<HotelDto>> GetFilteredHotelsAsync(bool? isEnabled, long? locationId, long? createdByUserId);
     Task<HotelDto> GetHotelByIdAsync(long id);
     Task AddHotelAsync(CreateHotelDto hotelDto, int userId);
     Task UpdateHotelAsync(UpdateHotelDto updateHotelDto);

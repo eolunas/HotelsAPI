@@ -29,4 +29,5 @@ public class Guest
     [Required, MaxLength(15)]
     public string Phone { get; set; }
 
+    public List<ReservationGuest> ReservationGuests { get; set; } = new List<ReservationGuest>();
 }

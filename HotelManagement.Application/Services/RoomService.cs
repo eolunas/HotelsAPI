@@ -10,36 +10,22 @@
         _userRepository = userRepository;
     }
 
+    public async Task<IEnumerable<RoomDto>> GetFilteredRoomsAsync(bool? isAvailable, long? hotelId, long? maxNumberOfGuest)
+    {
+        var rooms = await _roomRepository.GetFilteredRoomsAsync(isAvailable, hotelId, maxNumberOfGuest);
+        return rooms.Select(RoomDto.FromEntity);
+    }
+
     public async Task<IEnumerable<RoomDto>> GetAllRoomsAsync()
     {
         var rooms = await _roomRepository.GetAllAsync();
-        return rooms.Select(r => new RoomDto
-        {
-            Id = r.Id,
-            RoomType = r.RoomType,
-            BasePrice = r.BasePrice,
-            Taxes = r.Taxes,
-            MaxNumberOfGuest = r.MaxNumberOfGuest,
-            Location = r.Location,
-            IsAvailable = r.IsAvailable,
-            HotelId = r.HotelId
-        });
+        return rooms.Select(RoomDto.FromEntity);
     }
 
     public async Task<IEnumerable<RoomDto>> GetRoomsByHotelIdAsync(long hotelId)
     {
         var rooms = await _roomRepository.GetRoomsByHotelIdAsync(hotelId);
-        return rooms.Select(r => new RoomDto
-        {
-            Id = r.Id,
-            RoomType = r.RoomType,
-            BasePrice = r.BasePrice,
-            Taxes = r.Taxes,
-            Location = r.Location,
-            MaxNumberOfGuest = r.MaxNumberOfGuest,
-            IsAvailable = r.IsAvailable,
-            HotelId = r.HotelId
-        });
+        return rooms.Select(RoomDto.FromEntity);
     }
 
     public async Task AddRoomAsync(CreateRoomDto createRoomDto, int userId)

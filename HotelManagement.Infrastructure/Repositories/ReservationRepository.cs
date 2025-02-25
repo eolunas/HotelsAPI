@@ -46,8 +46,10 @@ public class ReservationRepository : IReservationRepository
     {
         return await _context.Reservations
         .Include(r => r.Hotel)
+            .ThenInclude(rg => rg.Location)
         .Include(r => r.Room)
-        .Include(r => r.Guest)
+        .Include(r => r.ReservationGuests)
+            .ThenInclude(rg => rg.Guest)
         .FirstOrDefaultAsync(r => r.Id == id) ?? new Reservation();
     }
 

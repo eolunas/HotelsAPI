@@ -4,6 +4,6 @@
     public DateOnly CheckInDate { get; set; }
     public DateOnly CheckOutDate { get; set; }
     public int NumberOfGuests { get; set; }
-    public GuestDto Guest { get; set; }
+    public List<GuestDto> Guests { get; set; }
     public EmergencyContactDto EmergencyContact { get; set; }
 }

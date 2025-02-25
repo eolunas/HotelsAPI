@@ -28,9 +28,7 @@ public class Reservation
     public long RoomId { get; set; } 
     public Room Room { get; set; }
 
-    [ForeignKey("Guest")]
-    public long GuestId { get; set; }
-    public Guest Guest { get; set; }
+    public List<ReservationGuest> ReservationGuests { get; set; } = new List<ReservationGuest>();
 
     [NotMapped]
     public int Nights => (CheckOutDate.DayNumber - CheckInDate.DayNumber);

@@ -8,4 +8,20 @@
     public string Location { get; set; }
     public bool IsAvailable { get; set; }
     public long? HotelId { get; set; }
+
+    public static RoomDto FromEntity(Room r)
+    {
+        return new RoomDto
+        {
+            Id = r.Id,
+            RoomType = r.RoomType,
+            Taxes = r.Taxes,
+            BasePrice = r.BasePrice,
+            Location = r.Location,
+            MaxNumberOfGuest = r.MaxNumberOfGuest,
+            IsAvailable = r.IsAvailable,
+            HotelId = r.HotelId
+        };
+    }
+
 }

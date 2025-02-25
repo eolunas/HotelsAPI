@@ -2,14 +2,14 @@
 {
     private readonly IReservationRepository _reservationRepository;
     private readonly IRoomRepository _roomRepository;
-    private readonly IRepository<Hotel> _hotelRepository;
+    private readonly IHotelRepository _hotelRepository;
     private readonly IGuestRepository _guestRepository;
     private readonly IEmergencyContactRepository _emergencyContactRepository;
     private readonly IEmailService _emailService;
 
     public ReservationService(
         IReservationRepository reservationRepository,
-        IRepository<Hotel> hotelRepository,
+        IHotelRepository hotelRepository,
         IRoomRepository roomRepository,
         IGuestRepository guestRepository,
         IEmergencyContactRepository emergencyContactRepository,
@@ -43,10 +43,11 @@
     public async Task<ReservationDetailDto> GetReservationDetailAsync(long id)
     {
         var reservation = await _reservationRepository.GetByIdAsync(id);
-        var emergencyContact = await _emergencyContactRepository.GetByReservationIdAsync(reservation.Id);
-
+        
         if (reservation.Id == 0)
             throw new KeyNotFoundException($"Reservation with ID {id} not found.");
+        
+        var emergencyContact = await _emergencyContactRepository.GetByReservationIdAsync(reservation.Id);
 
         // TotalCost calculation: 
         var totalCost = reservation.Nights * (reservation.Room.BasePrice + reservation.Room.Taxes);
@@ -59,26 +60,27 @@
             NumberOfGuests = reservation.NumberOfGuests,
             Nights = reservation.Nights,
             TotalCost = totalCost,
-            Guest = new GuestDto
+            Guests = reservation.ReservationGuests
+            .Select(rg => new GuestDto
             {
-                FullName = reservation.Guest.FullName,
-                BirthDate = reservation.Guest.BirthDate,
-                Gender = reservation.Guest.Gender,
-                DocumentType = reservation.Guest.DocumentType,
-                DocumentNumber = reservation.Guest.DocumentNumber,
-                Email = reservation.Guest.Email,
-                Phone = reservation.Guest.Phone
-            },
+                FullName = rg.Guest.FullName,
+                BirthDate = rg.Guest.BirthDate,
+                Gender = rg.Guest.Gender,
+                DocumentType = rg.Guest.DocumentType,
+                DocumentNumber = rg.Guest.DocumentNumber,
+                Email = rg.Guest.Email,
+                Phone = rg.Guest.Phone
+            }).ToList(),
             EmergencyContact = new EmergencyContactDto
             {
                 FullName = emergencyContact.FullName,
                 Phone = emergencyContact.Phone
-            },
+            } ?? new EmergencyContactDto { },
             Hotel = new HotelDetailDto
             {
                 Id = reservation.Hotel.Id,
                 Name = reservation.Hotel.Name,
-                Location = reservation.Hotel.Location, 
+                Location = reservation.Hotel.Location.CityName, 
             },
             Room = new RoomDetailDto
             {
@@ -144,19 +146,23 @@
 
         try
         {
-            // Create or find a Guest:
-            var guest = new Guest
+            // Create/update the Guests:
+            var ReservationGuests = new List<ReservationGuest>();
+            foreach (var guest in reservationDto.Guests)
             {
-                FullName = reservationDto.Guest.FullName,
-                BirthDate = reservationDto.Guest.BirthDate,
-                Gender = reservationDto.Guest.Gender,
-                Email = reservationDto.Guest.Email,
-                Phone = reservationDto.Guest.Phone,
-                DocumentType = reservationDto.Guest.DocumentType,
-                DocumentNumber = reservationDto.Guest.DocumentNumber
-            };
+                var guestAdded = await _guestRepository.AddOrUpdateAsync(new Guest
+                {
+                    FullName = guest.FullName,
+                    BirthDate = guest.BirthDate,
+                    Gender = guest.Gender,
+                    Email = guest.Email,
+                    Phone = guest.Phone,
+                    DocumentType = guest.DocumentType,
+                    DocumentNumber = guest.DocumentNumber
+                });
 
-            guest = await _guestRepository.AddOrUpdateAsync(guest);
+                ReservationGuests.Add(new ReservationGuest { GuestId = guestAdded .Id });
+            }
 
             // Create the reservation:
             var reservation = new Reservation
@@ -167,7 +173,7 @@
                 NumberOfGuests = reservationDto.NumberOfGuests,
                 IsConfirmed = true,
                 HotelId = room.HotelId ?? 0,
-                GuestId = guest.Id
+                ReservationGuests = ReservationGuests
             };
 
             await _reservationRepository.AddAsync(reservation);
@@ -185,8 +191,8 @@
                 await _emergencyContactRepository.AddAsync(emergencyContact);
             }
 
-            // Send confirmation via email:
-            await _emailService.SendReservationConfirmationAsync(guest, reservation);
+            // Send confirmation via email: [Every Guest]
+            await _emailService.SendReservationConfirmationAsync(reservationDto.Guests, reservation);
         }
         catch (Exception ex)
         {

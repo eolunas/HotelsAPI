@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-public class HotelRepository : IRepository<Hotel>
+public class HotelRepository : IHotelRepository
 {
     private readonly ApplicationDbContext _context;
 
@@ -26,6 +26,7 @@ public class HotelRepository : IRepository<Hotel>
     public async Task<IEnumerable<Hotel>> GetAllAsync()
     {
         return await _context.Hotels
+            .Include(h => h.Location)
             .Include(h => h.Rooms)
             .ToListAsync();
     }
@@ -33,6 +34,7 @@ public class HotelRepository : IRepository<Hotel>
     public async Task<Hotel> GetByIdAsync(long id)
     {
         return await _context.Hotels
+            .Include(h => h.Location)
             .Include(h => h.Rooms)
             .FirstOrDefaultAsync(h => h.Id == id) ?? new Hotel();
     }
@@ -42,4 +44,36 @@ public class HotelRepository : IRepository<Hotel>
         _context.Hotels.Update(entity);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<Hotel>> GetFilteredHotelsAsync(bool? isEnabled, long? locationId, long? createdByUserId)
+    {
+        var query = _context.Hotels
+            .Include(h => h.Location)
+            .Include(h => h.Rooms)
+            .AsQueryable(); 
+
+        if (isEnabled.HasValue)
+        {
+            query = query.Where(h => h.IsEnabled == isEnabled.Value);
+        }
+
+        if (locationId.HasValue)
+        {
+            query = query.Where(h => h.LocationId == locationId.Value);
+        }
+
+        if (createdByUserId.HasValue)
+        {
+            query = query.Where(h => h.CreatedByUserId == createdByUserId.Value);
+        }
+
+        return await query.ToListAsync(); 
+    }
+
+    public async Task<bool> ExistsInLocationAsync(string normalizedName, int locationId)
+    {
+        return await _context.Hotels
+            .AnyAsync(h => h.Name.ToLower() == normalizedName && h.LocationId == locationId);
+    }
+
 }

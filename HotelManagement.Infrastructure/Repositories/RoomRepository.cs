@@ -54,4 +54,28 @@ public class RoomRepository : IRoomRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<Room>> GetFilteredRoomsAsync(bool? isAvailable, long? hotelId, long? maxNumberOfGuest)
+    {
+        var query = _context.Rooms
+            .Include(h => h.Hotel)
+            .AsQueryable();
+
+        if (isAvailable.HasValue)
+        {
+            query = query.Where(h => h.IsAvailable == isAvailable.Value);
+        }
+
+        if (hotelId.HasValue)
+        {
+            query = query.Where(h => h.HotelId == hotelId.Value);
+        }
+
+        if (maxNumberOfGuest.HasValue)
+        {
+            query = query.Where(h => h.MaxNumberOfGuest == maxNumberOfGuest.Value);
+        }
+
+        return await query.ToListAsync();
+    }
+
 }

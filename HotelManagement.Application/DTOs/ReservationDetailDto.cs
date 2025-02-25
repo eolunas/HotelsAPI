@@ -7,7 +7,7 @@
     public int Nights {  get; set; }
     public decimal TotalCost { get; set; }
 
-    public GuestDto Guest { get; set; }
+    public List<GuestDto> Guests { get; set; }
     public EmergencyContactDto EmergencyContact { get; set; }
 
     public HotelDetailDto Hotel { get; set; }

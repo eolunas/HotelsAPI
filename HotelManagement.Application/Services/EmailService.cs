@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 
 public class EmailService : IEmailService
 {
@@ -11,7 +12,7 @@ public class EmailService : IEmailService
         _configuration = configuration;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task SendEmailAsync(List<string> recipients, string subject, string body)
     {
         var smtpClient = new SmtpClient
         {
@@ -31,7 +32,10 @@ public class EmailService : IEmailService
             IsBodyHtml = true
         };
 
-        mailMessage.To.Add(to);
+        foreach (var email in recipients)
+        {
+            mailMessage.Bcc.Add(email);
+        }
 
         try
         {
@@ -43,9 +47,21 @@ public class EmailService : IEmailService
         }
     }
 
-    public async Task SendReservationConfirmationAsync(Guest guest, Reservation reservation)
+    public async Task SendReservationConfirmationAsync(List<GuestDto> guests, Reservation reservation)
     {
         var subject = "🎉 Your Reservation is Confirmed! 🎉";
+
+        // List of guests for email:
+        StringBuilder guestsHtml = new();
+        foreach (var guest in guests)
+        {
+            guestsHtml.Append($@"
+                <tr>
+                    <td>{guest.FullName}</td>
+                    <td>{guest.Email}</td>
+                    <td>{guest.DocumentType} - {guest.DocumentNumber}</td>
+                </tr>");
+        }
 
         var body = $@"
         <!DOCTYPE html>
@@ -88,6 +104,20 @@ public class EmailService : IEmailService
                     font-weight: bold;
                     color: #333;
                 }}
+                .guest-list {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                }}
+                .guest-list th, .guest-list td {{
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }}
+                .guest-list th {{
+                    background-color: #007bff;
+                    color: white;
+                }}
                 .btn {{
                     display: inline-block;
                     margin-top: 20px;
@@ -112,7 +142,6 @@ public class EmailService : IEmailService
         <body>
             <div class='container'>
                 <h1>🎉 Reservation Confirmed! 🎉</h1>
-                <p>Hello <strong>{guest.FullName}</strong>,</p>
                 <p>Your reservation has been successfully confirmed. Here are the details:</p>
 
                 <div class='reservation-details'>
@@ -125,6 +154,16 @@ public class EmailService : IEmailService
                     <p><span class='details-label'>Guests:</span> {reservation.NumberOfGuests}</p>
                 </div>
 
+                <h2>Guest List</h2>
+                <table class='guest-list'>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Document</th>
+                    </tr>
+                    {guestsHtml}
+                </table>
+
                 <a href='' class='btn'>View Reservation</a>
 
                 <p class='footer'>If you have any questions, please contact us at hotelmanagerapi@gmail.com.</p>
@@ -132,6 +171,9 @@ public class EmailService : IEmailService
         </body>
         </html>";
 
-        await SendEmailAsync(guest.Email, subject, body);
+        // List of emails: 
+        var recipientEmails = guests.Select(g => g.Email).ToList();
+
+        await SendEmailAsync(recipientEmails, subject, body);
     }
 }
